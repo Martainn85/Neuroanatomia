@@ -211,6 +211,7 @@
       return '<rect class="' + cls + '" x="' + b[0] + '" y="' + b[1] + '" width="' + b[2] + '" height="' + b[3] + '" rx="' + (r * 0.35).toFixed(1) + '"/>';
     }
     if (maski) fig.cele.forEach(function (c, i) { if (c.box && maski !== i + 1) h += rect(c.box, 'maska'); });
+    if (maski) fig.zaslon.forEach(function (b) { h += rect(b, 'maska'); });
     (pins || []).forEach(function (p) {
       var num = p.n != null;
       if (p.box) {
