@@ -4,7 +4,7 @@
 
   var app = document.getElementById('app');
   var KEY = 'neuroanatomia_v1';
-  var KAT = { lok: 'Lokalizacja i budowa', fun: 'Funkcje', zab: 'Zaburzenia', naz: 'Nazwy łacińskie' };
+  var KAT = { lok: 'Lokalizacja i budowa', fun: 'Funkcje', zab: 'Zaburzenia', naz: 'Nazwy łacińskie', ryc: 'Ryciny' };
   var EGZ = { lok: 14, fun: 14, zab: 7 };     // skład egzaminu wg wykładu 1
   var EGZ_NAZWY = 4;                          // ile z 14 pytań "lok" to pytania o nazwy
   var LITERY = ['A', 'B', 'C', 'D'];
@@ -111,6 +111,7 @@
       '<div class="row" style="margin:14px 0 6px">' +
       '<a class="btn primary" href="#egzamin">Egzamin próbny</a>' +
       '<a class="btn" href="#quiz">Quiz</a>' +
+      '<a class="btn" href="#ryciny">Ryciny</a>' +
       '<a class="btn" href="#fiszki">Fiszki</a></div>' +
       '<p class="small muted">Pytania pisane obejmują wykłady: ' + esc(wyk.join(', ')) +
       ' (budowa ' + licz.lok + ', funkcje ' + licz.fun + ', zaburzenia ' + licz.zab +
@@ -201,6 +202,93 @@
     vFiszki();
   }
 
+  /* ---------- ryciny ---------- */
+  function figSVG(fig, pins, hl) {
+    var r = +fig.vb.split(' ')[2] / 46, h = '';
+    (pins || []).forEach(function (p) {
+      var num = p.n != null;
+      h += '<g class="pin' + (p.sel ? ' sel' : '') + '"' + (num ? ' data-act="r-sel" data-n="' + p.n + '"' : '') + '>' +
+        (p.sel || !num ? '<circle class="ring" cx="' + p.x + '" cy="' + p.y + '" r="' + (r * 1.9).toFixed(1) + '"/>' : '') +
+        '<circle class="dot" cx="' + p.x + '" cy="' + p.y + '" r="' + (num ? r : r * 0.8).toFixed(1) + '"/>' +
+        (num ? '<text x="' + p.x + '" y="' + p.y + '" font-size="' + (r * 1.15).toFixed(1) + '">' + (p.n + 1) + '</text>' : '') + '</g>';
+    });
+    return '<div class="ryc"><svg viewBox="' + fig.vb + '" role="img" aria-label="' + esc(fig.tytul) + '" data-hl="' + (hl || '') + '">' +
+      fig.svg + h + '</svg></div>';
+  }
+  /* odbicia lustrzane i podświetlenie: po wstawieniu SVG do dokumentu */
+  function dekoruj() {
+    app.querySelectorAll('.ryc svg').forEach(function (svg) {
+      svg.querySelectorAll('g[data-mirror]').forEach(function (g) {
+        var c = g.cloneNode(true);
+        c.removeAttribute('data-mirror');
+        c.setAttribute('transform', 'translate(' + g.getAttribute('data-mirror') + ',0) scale(-1,1)');
+        g.parentNode.insertBefore(c, g.nextSibling);
+        g.removeAttribute('data-mirror');
+      });
+      var k = svg.getAttribute('data-hl');
+      if (k) svg.querySelectorAll('[data-k="' + k + '"]').forEach(function (e) { e.classList.add('hl'); });
+    });
+  }
+  function rycPytanie(fig, i) {
+    var t = fig.cele[i], zle = [];
+    shuffle(fig.cele).forEach(function (c) {
+      if (zle.length < 3 && c.pl !== t.pl && zle.indexOf(c.pl) < 0) zle.push(c.pl);
+    });
+    return {
+      id: 'R-' + fig.id + '-' + i, k: 'ryc', w: 'ryciny', fig: fig, t: t,
+      q: 'Która struktura jest zaznaczona na rycinie?', ok: t.pl, zle: zle,
+      e: t.pl + (t.la ? ' = ' + t.la : '')
+    };
+  }
+  function rycStart(fid) {
+    var figs = NA.ryciny.filter(function (f) { return fid === 'all' || f.id === fid; });
+    var pula = [];
+    figs.forEach(function (f) { f.cele.forEach(function (c, i) { pula.push(rycPytanie(f, i)); }); });
+    pula = shuffle(pula);
+    // najpierw struktury jeszcze nierozpoznane
+    pula.sort(function (a, b) {
+      var w = function (p) { var st = S.q[p.id]; return !st || !st.ok ? 0 : (st.bad >= st.ok ? 1 : 2); };
+      return w(a) - w(b);
+    });
+    if (fid === 'all') pula = shuffle(pula.slice(0, 20));
+    Q = { tryb: 'quiz', widok: 'ryciny', fid: fid, items: pula.map(przygotuj), i: 0, pokaz: false, koniec: false };
+    vQuiz();
+  }
+
+  var R = { f: null, sel: -1, ukryj: false };
+  function vRyciny() {
+    var h;
+    if (!R.f) {
+      var ile = NA.ryciny.reduce(function (a, f) { return a + f.cele.length; }, 0);
+      h = '<h1>Ryciny</h1><p class="muted">Schematy własne, uproszczone: pokazują położenie struktur względem siebie, a nie dokładny kształt. ' +
+        'W trybie nauki dotknij numeru, w teście rozpoznaj zaznaczoną strukturę.</p>' +
+        '<p><button class="primary" data-act="r-test" data-f="all">Test ze wszystkich rycin (20 pytań)</button></p><div class="figs">';
+      NA.ryciny.forEach(function (f) {
+        var um = f.cele.filter(function (c, i) { var st = S.q['R-' + f.id + '-' + i]; return st && st.ok > 0; }).length;
+        h += '<div class="card fig">' + figSVG(f) + '<h3>' + esc(f.tytul) + '</h3>' +
+          '<p class="small muted">rozpoznane ' + um + ' / ' + f.cele.length + '</p>' +
+          '<div class="row"><button data-act="r-open" data-f="' + f.id + '">Ucz się</button>' +
+          '<button data-act="r-test" data-f="' + f.id + '">Test</button></div></div>';
+      });
+      h += '</div><p class="small muted">Razem ' + ile + ' oznaczeń na ' + NA.ryciny.length + ' rycinach.</p>';
+      app.innerHTML = h; dekoruj(); return;
+    }
+    var f = R.f, sel = f.cele[R.sel];
+    h = '<p><button class="ghost small" data-act="r-back">← Wszystkie ryciny</button></p><h1>' + esc(f.tytul) + '</h1>' +
+      '<div class="card">' + figSVG(f, f.cele.map(function (c, i) { return { x: c.x, y: c.y, n: i, sel: i === R.sel }; }), sel ? sel.el : '') +
+      '<div class="figinfo">' + (sel ? '<b>' + (R.sel + 1) + '. ' + esc(sel.pl) + '</b>' + (sel.la ? ' <span class="la muted">' + esc(sel.la) + '</span>' : '')
+        : '<span class="muted">Dotknij numeru na rycinie albo na liście.</span>') + '</div></div>' +
+      '<div class="row end"><label class="chip"><input type="checkbox" data-act="r-ukryj"' + (R.ukryj ? ' checked' : '') + '> ukryj nazwy na liście</label>' +
+      '<button class="primary" data-act="r-test" data-f="' + f.id + '">Test z tej ryciny</button></div><div class="legend">';
+    f.cele.forEach(function (c, i) {
+      var pokaz = !R.ukryj || i === R.sel;
+      h += '<button data-act="r-sel" data-n="' + i + '" class="' + (i === R.sel ? 'cur' : '') + '"><span class="ltr">' + (i + 1) + '</span>' +
+        '<span>' + (pokaz ? esc(c.pl) + (c.la ? ' <span class="la muted small">' + esc(c.la) + '</span>' : '') : '<span class="muted">pokaż</span>') + '</span></button>';
+    });
+    app.innerHTML = h + '</div>';
+    dekoruj();
+  }
+
   /* ---------- widok: quiz i egzamin ---------- */
   var Q = null;   // {tryb:'quiz'|'egzamin', items, i, pokaz, koniec}
   var qUst = { kat: { lok: true, fun: true, zab: true, naz: false }, w: 'all', n: '10', slabe: true, z: 'all' };
@@ -225,7 +313,7 @@
       pula.sort(function (a, b) { return waga(a) - waga(b); });
     }
     var n = qUst.n === 'all' ? pula.length : Math.min(+qUst.n, pula.length);
-    Q = { tryb: 'quiz', items: shuffle(pula.slice(0, n)).map(przygotuj), i: 0, pokaz: false, koniec: false };
+    Q = { tryb: 'quiz', widok: 'quiz', items: shuffle(pula.slice(0, n)).map(przygotuj), i: 0, pokaz: false, koniec: false };
     vQuiz();
   }
 
@@ -234,7 +322,7 @@
     var nazwy = sample(pulaNazw('all'), EGZ_NAZWY);
     var lok = wez('lok', EGZ.lok - nazwy.length).concat(nazwy);
     var all = lok.concat(wez('fun', EGZ.fun), wez('zab', EGZ.zab));
-    Q = { tryb: 'egzamin', items: shuffle(all).map(przygotuj), i: 0, pokaz: false, koniec: false };
+    Q = { tryb: 'egzamin', widok: 'egzamin', items: shuffle(all).map(przygotuj), i: 0, pokaz: false, koniec: false };
     vQuiz();
   }
 
@@ -277,7 +365,7 @@
   }
 
   function vQuiz() {
-    if (!Q) { return location.hash === '#egzamin' ? vEgzaminStart() : vQuizUstawienia(); }
+    if (!Q) { var w0 = widok(); return w0 === 'egzamin' ? vEgzaminStart() : w0 === 'ryciny' ? vRyciny() : vQuizUstawienia(); }
     if (Q.koniec) return vWynik();
     var it = Q.items[Q.i], p = it.p, egz = Q.tryb === 'egzamin';
     var odsl = !egz && Q.pokaz;
@@ -288,7 +376,8 @@
       (egz ? '<span>odpowiedzi: ' + Q.items.filter(function (x) { return x.chosen !== null; }).length + ' / ' + Q.items.length + '</span>'
         : '<span>punkty: ' + r.pts + '</span>') + '</div>' +
       '<div class="progressline"><i style="width:' + Math.round(Q.i / Q.items.length * 100) + '%"></i></div>' +
-      '<div class="card"><div class="qtext">' + esc(p.q) + '</div><div class="opts">';
+      '<div class="card">' + (p.fig ? figSVG(p.fig, [{ x: p.t.x, y: p.t.y }], p.t.el) : '') +
+      '<div class="qtext">' + esc(p.q) + '</div><div class="opts">';
 
     it.opts.forEach(function (o, n) {
       var cls = 'opt';
@@ -328,6 +417,7 @@
         '<button data-act="q-skip">Pomijam (0 pkt)</button></div>';
     }
     app.innerHTML = h;
+    if (p.fig) dekoruj();
   }
 
   function zakoncz() {
@@ -344,13 +434,13 @@
 
   function vWynik() {
     var r = policz(Q.items), egz = Q.tryb === 'egzamin';
-    if (!Q.items.length) { Q = null; return vQuiz(); }
+    if (!Q.items.length) { Q = null; return render(); }
     var h = '<h1>' + (egz ? 'Wynik egzaminu próbnego' : 'Wynik quizu') + '</h1>' +
       '<div class="card score"><div class="big">' + r.pct + '%</div>' +
       '<div class="grade">' + r.pts + ' / ' + r.max + ' pkt, ocena wg skali egzaminu: <b>' + ocena(r.pct) + '</b></div>' +
       '<p class="muted" style="margin-top:8px">poprawne ' + r.ok + ', błędne ' + r.bad + ', pominięte ' + r.skip + '</p></div>' +
       '<div class="card tablewrap"><table><tr><th>Zakres</th><th>Dobrze</th><th>Źle</th><th>Brak</th><th>Punkty</th></tr>';
-    ['lok', 'fun', 'zab'].forEach(function (k) {
+    ['lok', 'fun', 'zab', 'ryc'].forEach(function (k) {
       var c = r.kat[k]; if (!c) return;
       var n = c.ok + c.bad + c.skip;
       h += '<tr><td>' + KAT[k] + '</td><td class="n">' + c.ok + '</td><td class="n">' + c.bad + '</td><td class="n">' + c.skip +
@@ -363,15 +453,17 @@
       h += '<h2>Do powtórki</h2><div class="card"><ol class="review">';
       zle.forEach(function (it) {
         var brak = it.chosen === null || it.chosen === 'skip';
-        h += '<li><div><b>' + esc(it.p.q) + '</b></div>' +
+        h += '<li><div><b>' + esc(it.p.fig ? 'Rycina: ' + it.p.fig.tytul : it.p.q) + '</b></div>' +
           (brak ? '<div class="muted">bez odpowiedzi</div>' : '<div class="r-bad">' + esc(it.opts[it.chosen]) + '</div>') +
           '<div class="r-ok">' + esc(it.p.ok) + '</div>' +
           (it.p.e ? '<div class="small muted">' + esc(it.p.e) + '</div>' : '') + '</li>';
       });
       h += '</ol></div>';
     }
-    h += '<div class="row"><button class="primary" data-act="' + (egz ? 'e-start' : 'q-start') + '">Jeszcze raz</button>' +
-      '<button data-act="q-reset">' + (egz ? 'Wróć' : 'Zmień ustawienia') + '</button></div>';
+    var ryc = Q.widok === 'ryciny';
+    h += '<div class="row"><button class="primary" data-act="' + (egz ? 'e-start' : ryc ? 'r-test' : 'q-start') + '"' +
+      (ryc ? ' data-f="' + Q.fid + '"' : '') + '>Jeszcze raz</button>' +
+      '<button data-act="q-reset">' + (egz || ryc ? 'Wróć' : 'Zmień ustawienia') + '</button></div>';
     app.innerHTML = h;
     window.scrollTo(0, 0);
   }
@@ -404,11 +496,11 @@
   function widok() { return (location.hash || '#start').slice(1); }
   function render() {
     var v = widok();
-    if (v === 'quiz' && Q && Q.tryb === 'egzamin') Q = null;
-    if (v === 'egzamin' && Q && Q.tryb === 'quiz') Q = null;
+    if (Q && ['quiz', 'egzamin', 'ryciny'].indexOf(v) >= 0 && Q.widok !== v) Q = null;
+    if (v !== 'ryciny') { R.f = null; R.sel = -1; }
     document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.view === v); });
     if (v === 'fiszki') vFiszki();
-    else if (v === 'quiz' || v === 'egzamin') vQuiz();
+    else if (v === 'quiz' || v === 'egzamin' || v === 'ryciny') vQuiz();
     else if (v === 'struktury') vStruktury();
     else vStart();
   }
@@ -448,7 +540,12 @@
         if (Q.i === Q.items.length - 1) zakoncz(); else { Q.i++; Q.pokaz = false; vQuiz(); }
         break;
       case 'q-przerwij': zakoncz(); break;
-      case 'q-reset': Q = null; vQuiz(); break;
+      case 'q-reset': Q = null; render(); break;
+      case 'r-test': rycStart(el.dataset.f); window.scrollTo(0, 0); break;
+      case 'r-open': R.f = NA.ryciny.filter(function (f) { return f.id === el.dataset.f; })[0]; R.sel = -1; vRyciny(); window.scrollTo(0, 0); break;
+      case 'r-back': R.f = null; vRyciny(); break;
+      case 'r-sel': R.sel = +el.dataset.n; vRyciny(); break;
+      case 'r-ukryj': R.ukryj = el.checked; vRyciny(); break;
       case 'e-start': egzaminStart(); window.scrollTo(0, 0); break;
       case 'e-prev': Q.i--; vQuiz(); break;
       case 'e-next': Q.i++; vQuiz(); break;
@@ -473,7 +570,7 @@
       if (k === ' ' || k === 'enter') { ev.preventDefault(); F.flip = !F.flip; vFiszki(); }
       else if (F.flip && k === '1') fOdp(false);
       else if (F.flip && k === '2') fOdp(true);
-    } else if ((v === 'quiz' || v === 'egzamin') && Q && !Q.koniec) {
+    } else if ((v === 'quiz' || v === 'egzamin' || v === 'ryciny') && Q && !Q.koniec) {
       var n = 'abcd'.indexOf(k); if (n < 0) n = '1234'.indexOf(k);
       var odsl = Q.tryb === 'quiz' && Q.pokaz;
       if (n >= 0 && k.length === 1 && !odsl) { Q.items[Q.i].chosen = n; if (Q.tryb === 'quiz') Q.pokaz = true; vQuiz(); }

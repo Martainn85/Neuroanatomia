@@ -1,6 +1,6 @@
 # Neuroanatomia: nauka i quizy
 
-Statyczna strona do nauki neuroanatomii: fiszki (nazwy polskie i łacińskie), quiz z punktacją egzaminacyjną, egzamin próbny i lista 80 struktur. Czysty HTML, CSS i JavaScript, bez instalacji i bez etapu budowania.
+Statyczna strona do nauki neuroanatomii: fiszki (nazwy polskie i łacińskie), quiz z punktacją egzaminacyjną, test na rycinach, egzamin próbny i lista 80 struktur. Czysty HTML, CSS i JavaScript, bez instalacji i bez etapu budowania.
 
 ## Uruchomienie
 
@@ -22,6 +22,7 @@ js/app.js           widoki i logika
 data/struktury.js   80 struktur w 12 zestawach
 data/pytania-w1.js  pytania z wykładu 1
 data/pytania-w2.js  pytania z wykładu 2
+data/ryciny.js      schematy SVG z oznaczonymi strukturami
 ```
 
 ## Dodawanie kolejnego wykładu

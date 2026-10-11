@@ -162,3 +162,49 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .opt:disabled:hover { border-color: var(--line); }
 .opt.good:disabled:hover { border-color: var(--ok); }
 .opt.wrong:disabled:hover { border-color: var(--bad); }
+
+/* ryciny */
+.ryc { --c1: #e7cfba; --c2: #f7eee2; --c3: #c9af9b; --c3b: #dcc7b5; --c4: #7d5f4f; --ol: #7b5a48; --hl: #ef8a66; --ves: #c9a195; }
+@media (prefers-color-scheme: dark) {
+  .ryc { --c1: #5f4c45; --c2: #84706a; --c3: #493a36; --c3b: #6d5a53; --c4: #2b211e; --ol: #d7bfae; --hl: #f39a78; --ves: #8f6d64; }
+}
+.ryc svg { display: block; width: 100%; height: auto; max-height: 64vh; margin: 0 auto; }
+.ryc svg * { vector-effect: none; }
+.ryc .b { fill: var(--c1); } .ryc .w { fill: var(--c2); } .ryc .g { fill: var(--c3); } .ryc .g2 { fill: var(--c3b); }
+.ryc .dk { fill: var(--c4); } .ryc .v { fill: var(--card); }
+.ryc .b, .ryc .w, .ryc .g, .ryc .g2, .ryc .dk, .ryc .v { stroke: var(--ol); stroke-width: 1.5; stroke-linejoin: round; }
+.ryc .nb { stroke: none; }
+.ryc .ln { fill: none; stroke: var(--ol); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ryc .dash { stroke-dasharray: 5 6; opacity: .75; }
+.ryc .dec { stroke-width: 1.2; opacity: .5; }
+.ryc .fx { stroke: var(--c2); stroke-width: 7; paint-order: stroke; filter: drop-shadow(0 0 .6px var(--ol)); }
+.ryc .aq, .ryc .vln { stroke: var(--card); stroke-width: 3.5; }
+.ryc .cla { stroke: var(--c3); stroke-width: 4; }
+.ryc .sep { stroke-width: 3.5; }
+.ryc .aps { stroke-dasharray: 2 3; }
+.ryc .ves { fill: none; stroke: var(--ves); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; }
+.ryc .ves.thin { stroke-width: 8; }
+.ryc .ici { fill: var(--ves); stroke: var(--ol); stroke-width: 1.5; }
+.ryc [data-k].hl { fill: var(--hl); }
+.ryc .ln.hl { fill: none; stroke: var(--hl); stroke-width: 5.5; }
+.ryc .fx.hl { stroke-width: 8; }
+.ryc .ves.hl { fill: none; stroke: var(--hl); }
+.ryc .pin .dot { fill: var(--accent); stroke: #fff; stroke-width: 1.6; }
+.ryc .pin .ring { fill: none; stroke: var(--accent); stroke-width: 2; opacity: .75; }
+.ryc .pin text { fill: var(--accent-ink); text-anchor: middle; dominant-baseline: central; font-weight: 700; font-family: system-ui, sans-serif; pointer-events: none; }
+.ryc .pin[data-act] { cursor: pointer; }
+.ryc .pin.sel .dot { fill: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .ryc .pin .ring { animation: puls 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes puls { from { transform: scale(.6); opacity: .9; } to { transform: scale(1.25); opacity: 0; } }
+}
+.figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.fig { margin: 0; display: grid; gap: 8px; align-content: start; }
+.fig h3 { font-size: 1rem; margin: 0; }
+.fig p { margin: 0; }
+.fig .ryc svg { max-height: 190px; }
+.figinfo { min-height: 1.6em; margin-top: 10px; text-align: center; }
+.legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin-top: 14px; }
+.legend button { text-align: left; display: grid; grid-template-columns: 26px 1fr; gap: 6px; padding: 8px 10px; font-size: .93rem; }
+.legend button.cur { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.legend .ltr { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }

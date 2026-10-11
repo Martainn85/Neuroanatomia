@@ -10,6 +10,7 @@
     zestawy: [],   // [{nr, tytul, struktury:[{id, pl, la}]}]
     pytania: [],   // [{id, k, w, q, ok, zle, e}]
     wyklady: {},   // {W1: 'tytuł'}
+    ryciny: [],    // [{id, tytul, vb, svg, cele:[{pl, la, x, y, el}]}]
 
     /* Zestaw struktur z listy prowadzącego. */
     zestaw: function (nr, tytul, lista) {
@@ -35,6 +36,14 @@
           id: kod + '-' + hash(p.q), k: p.k, w: kod,
           q: p.q, ok: p.ok, zle: p.zle, e: p.e || ''
         });
+      });
+    },
+
+    /* Rycina schematyczna. cele: [nazwa PL, nazwa łac., x, y, klucz elementu do podświetlenia] */
+    rycina: function (id, tytul, vb, svg, cele) {
+      NA.ryciny.push({
+        id: id, tytul: tytul, vb: vb, svg: svg,
+        cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '' }; })
       });
     },
 
