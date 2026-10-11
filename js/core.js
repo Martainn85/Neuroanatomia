@@ -44,7 +44,7 @@
     rycina: function (id, tytul, vb, svg, cele, zrodlo, opcje) {
       NA.ryciny.push({
         id: id, tytul: tytul, vb: vb, svg: svg, zrodlo: zrodlo || '', maska: !!(opcje && opcje.maska),
-        cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '', box: c[5] || null }; })
+        cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '', box: c[5] || null, nr: c[6] || '' }; })
       });
     },
 

@@ -43,3 +43,7 @@ Pole `k` to zakres: `lok` (lokalizacja i budowa), `fun` (funkcje), `zab` (zaburz
 ## Postępy
 
 Zapisują się w `localStorage` przeglądarki, osobno na każdym urządzeniu. Można je wyzerować na dole widoku "Struktury".
+
+## Ryciny prywatne (tylko na dysku)
+
+Folder `prywatne/` (plik `prywatne/ryciny.js` i obrazy w `prywatne/img/`) zawiera ryciny z własnych książek i slajdów. Jest w `.gitignore`, więc nie trafia do repozytorium ani na publiczną stronę. Strona ładuje go tylko wtedy, gdy istnieje obok `index.html`.

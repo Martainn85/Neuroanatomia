@@ -6,7 +6,8 @@
   var KEY = 'neuroanatomia_v1';
   var KAT = { lok: 'Lokalizacja i budowa', fun: 'Funkcje', zab: 'Zaburzenia', naz: 'Nazwy łacińskie', ryc: 'Ryciny' };
   var EGZ = { lok: 14, fun: 14, zab: 7 };     // skład egzaminu wg wykładu 1
-  var EGZ_NAZWY = 4;                          // ile z 14 pytań "lok" to pytania o nazwy
+  var EGZ_RYCINY = 4;                         // ile z 14 pytań "lok" to pytania z rycin
+  var EGZ_NAZWY = 2;                          // ile z 14 pytań "lok" to pytania o nazwy
   var LITERY = ['A', 'B', 'C', 'D'];
 
   /* ---------- pamięć ---------- */
@@ -64,10 +65,11 @@
   }
 
   /* ---------- wynik ---------- */
+  var egzTryb = false;
   function policz(items) {
     var r = { ok: 0, bad: 0, skip: 0, kat: {} };
     items.forEach(function (it) {
-      var k = it.p.k === 'naz' ? 'lok' : it.p.k;
+      var k = it.p.k === 'naz' || (egzTryb && it.p.k === 'ryc') ? 'lok' : it.p.k;
       var c = r.kat[k] || (r.kat[k] = { ok: 0, bad: 0, skip: 0 });
       if (it.chosen === null || it.chosen === 'skip') { r.skip++; c.skip++; }
       else if (it.chosen === it.ci) { r.ok++; c.ok++; }
@@ -284,13 +286,13 @@
     var f = R.f, sel = f.cele[R.sel];
     h = '<p><button class="ghost small" data-act="r-back">← Wszystkie ryciny</button></p><h1>' + esc(f.tytul) + '</h1>' +
       '<div class="card">' + figSVG(f, f.cele.map(function (c, i) { return { x: c.x, y: c.y, n: i, sel: i === R.sel, box: c.box }; }), sel ? sel.el : '', f.maska && R.ukryj ? R.sel + 1 || true : false) +
-      '<div class="figinfo">' + (sel ? '<b>' + (R.sel + 1) + '. ' + esc(sel.pl) + '</b>' + (sel.la ? ' <span class="la muted">' + esc(sel.la) + '</span>' : '')
+      '<div class="figinfo">' + (sel ? '<b>' + esc(sel.nr || (f.maska ? '' : R.sel + 1)) + (sel.nr || !f.maska ? '. ' : '') + esc(sel.pl) + '</b>' + (sel.la ? ' <span class="la muted">' + esc(sel.la) + '</span>' : '')
         : '<span class="muted">Dotknij numeru na rycinie albo na liście.</span>') + '</div></div>' +
       '<div class="row end"><label class="chip"><input type="checkbox" data-act="r-ukryj"' + (R.ukryj ? ' checked' : '') + '> ukryj nazwy na liście</label>' +
       '<button class="primary" data-act="r-test" data-f="' + f.id + '">Test z tej ryciny</button></div><div class="legend">';
     f.cele.forEach(function (c, i) {
       var pokaz = !R.ukryj || i === R.sel;
-      h += '<button data-act="r-sel" data-n="' + i + '" class="' + (i === R.sel ? 'cur' : '') + '"><span class="ltr">' + (i + 1) + '</span>' +
+      h += '<button data-act="r-sel" data-n="' + i + '" class="' + (i === R.sel ? 'cur' : '') + '"><span class="ltr">' + esc(c.nr || i + 1) + '</span>' +
         '<span>' + (pokaz ? esc(c.pl) + (c.la ? ' <span class="la muted small">' + esc(c.la) + '</span>' : '') : '<span class="muted">pokaż</span>') + '</span></button>';
     });
     app.innerHTML = h + '</div>';
@@ -327,8 +329,13 @@
 
   function egzaminStart() {
     var wez = function (k, n) { return sample(NA.pytania.filter(function (p) { return p.k === k; }), n); };
+    // w puli "lokalizacja i budowa": nazwy łacińskie oraz ryciny (najpierw skany z ramkami, jeśli są na dysku)
+    var skany = NA.ryciny.filter(function (f) { return f.cele.some(function (c) { return c.box; }); });
+    var rpula = [];
+    (skany.length ? skany : NA.ryciny).forEach(function (f) { f.cele.forEach(function (c, i) { rpula.push(rycPytanie(f, i)); }); });
+    var ryc = sample(rpula, EGZ_RYCINY);
     var nazwy = sample(pulaNazw('all'), EGZ_NAZWY);
-    var lok = wez('lok', EGZ.lok - nazwy.length).concat(nazwy);
+    var lok = wez('lok', EGZ.lok - nazwy.length - ryc.length).concat(nazwy, ryc);
     var all = lok.concat(wez('fun', EGZ.fun), wez('zab', EGZ.zab));
     Q = { tryb: 'egzamin', widok: 'egzamin', items: shuffle(all).map(przygotuj), i: 0, pokaz: false, koniec: false };
     vQuiz();
@@ -365,7 +372,7 @@
       hist += '</table></div>';
     }
     app.innerHTML = '<h1>Egzamin próbny</h1>' +
-      '<div class="card"><p>35 pytań ABCD w proporcjach z wykładu: 14 z lokalizacji i budowy, 14 z funkcji, 7 z zaburzeń.</p>' +
+      '<div class="card"><p>35 pytań ABCD w proporcjach z wykładu: 14 z lokalizacji i budowy (w tym 4 z rycin), 14 z funkcji, 7 z zaburzeń.</p>' +
       '<p>2 pkt za poprawną odpowiedź, 0 za brak, minus 1 za błędną. Wynik i poprawne odpowiedzi zobaczysz dopiero na końcu.</p>' +
       '<p class="small muted">Skala: 91-100% to 5, 81-90% to 4,5, 71-80% to 4, 61-70% to 3,5, 50-60% to 3, poniżej 50% to 2. ' +
       'Pytania pochodzą na razie z wykładów: ' + esc(Object.keys(NA.wyklady).join(', ')) + '.</p>' +
@@ -441,7 +448,9 @@
   }
 
   function vWynik() {
-    var r = policz(Q.items), egz = Q.tryb === 'egzamin';
+    egzTryb = Q.tryb === 'egzamin';
+    var r = policz(Q.items), egz = egzTryb;
+    egzTryb = false;
     if (!Q.items.length) { Q = null; return render(); }
     var h = '<h1>' + (egz ? 'Wynik egzaminu próbnego' : 'Wynik quizu') + '</h1>' +
       '<div class="card score"><div class="big">' + r.pct + '%</div>' +
