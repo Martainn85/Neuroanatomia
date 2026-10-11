@@ -39,11 +39,12 @@
       });
     },
 
-    /* Rycina schematyczna. cele: [nazwa PL, nazwa łac., x, y, klucz elementu do podświetlenia] */
-    rycina: function (id, tytul, vb, svg, cele, zrodlo) {
+    /* Rycina. cele: [nazwa PL, nazwa łac., x, y, klucz elementu do podświetlenia, ramka [x, y, szer, wys]].
+       Ramka zastępuje znacznik: otacza numer lub podpis na skanie. Opcja maska: true zasłania wszystkie ramki. */
+    rycina: function (id, tytul, vb, svg, cele, zrodlo, opcje) {
       NA.ryciny.push({
-        id: id, tytul: tytul, vb: vb, svg: svg, zrodlo: zrodlo || '',
-        cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '' }; })
+        id: id, tytul: tytul, vb: vb, svg: svg, zrodlo: zrodlo || '', maska: !!(opcje && opcje.maska),
+        cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '', box: c[5] || null }; })
       });
     },
 

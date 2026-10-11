@@ -210,3 +210,7 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .legend .ltr { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 
 .ryc .zrodlo { font-size: .72rem; color: var(--muted); text-align: right; margin-top: 4px; }
+
+.ryc .ramka { fill: transparent; stroke: var(--accent); stroke-width: 2; opacity: .55; }
+.ryc .pin.sel .ramka { stroke: #ff5a36; stroke-width: 4; opacity: 1; fill: rgba(255, 90, 54, .18); }
+.ryc .maska { fill: var(--card); stroke: var(--line); stroke-width: 1; }

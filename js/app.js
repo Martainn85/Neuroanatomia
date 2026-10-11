@@ -203,10 +203,18 @@
   }
 
   /* ---------- ryciny ---------- */
-  function figSVG(fig, pins, hl) {
+  function figSVG(fig, pins, hl, maski) {
     var r = +fig.vb.split(' ')[2] / 46, h = '';
+    function rect(b, cls) {
+      return '<rect class="' + cls + '" x="' + b[0] + '" y="' + b[1] + '" width="' + b[2] + '" height="' + b[3] + '" rx="' + (r * 0.35).toFixed(1) + '"/>';
+    }
+    if (maski) fig.cele.forEach(function (c, i) { if (c.box && maski !== i + 1) h += rect(c.box, 'maska'); });
     (pins || []).forEach(function (p) {
       var num = p.n != null;
+      if (p.box) {
+        h += '<g class="pin' + (p.sel || !num ? ' sel' : '') + '"' + (num ? ' data-act="r-sel" data-n="' + p.n + '"' : '') + '>' + rect(p.box, 'ramka') + '</g>';
+        return;
+      }
       h += '<g class="pin' + (p.sel ? ' sel' : '') + '"' + (num ? ' data-act="r-sel" data-n="' + p.n + '"' : '') + '>' +
         (p.sel || !num ? '<circle class="ring" cx="' + p.x + '" cy="' + p.y + '" r="' + (r * 1.9).toFixed(1) + '"/>' : '') +
         '<circle class="dot" cx="' + p.x + '" cy="' + p.y + '" r="' + (num ? r : r * 0.8).toFixed(1) + '"/>' +
@@ -275,7 +283,7 @@
     }
     var f = R.f, sel = f.cele[R.sel];
     h = '<p><button class="ghost small" data-act="r-back">← Wszystkie ryciny</button></p><h1>' + esc(f.tytul) + '</h1>' +
-      '<div class="card">' + figSVG(f, f.cele.map(function (c, i) { return { x: c.x, y: c.y, n: i, sel: i === R.sel }; }), sel ? sel.el : '') +
+      '<div class="card">' + figSVG(f, f.cele.map(function (c, i) { return { x: c.x, y: c.y, n: i, sel: i === R.sel, box: c.box }; }), sel ? sel.el : '', f.maska && R.ukryj ? R.sel + 1 || true : false) +
       '<div class="figinfo">' + (sel ? '<b>' + (R.sel + 1) + '. ' + esc(sel.pl) + '</b>' + (sel.la ? ' <span class="la muted">' + esc(sel.la) + '</span>' : '')
         : '<span class="muted">Dotknij numeru na rycinie albo na liście.</span>') + '</div></div>' +
       '<div class="row end"><label class="chip"><input type="checkbox" data-act="r-ukryj"' + (R.ukryj ? ' checked' : '') + '> ukryj nazwy na liście</label>' +
@@ -376,7 +384,7 @@
       (egz ? '<span>odpowiedzi: ' + Q.items.filter(function (x) { return x.chosen !== null; }).length + ' / ' + Q.items.length + '</span>'
         : '<span>punkty: ' + r.pts + '</span>') + '</div>' +
       '<div class="progressline"><i style="width:' + Math.round(Q.i / Q.items.length * 100) + '%"></i></div>' +
-      '<div class="card">' + (p.fig ? figSVG(p.fig, [{ x: p.t.x, y: p.t.y }], p.t.el) : '') +
+      '<div class="card">' + (p.fig ? figSVG(p.fig, [{ x: p.t.x, y: p.t.y, box: p.t.box }], p.t.el, p.fig.maska) : '') +
       '<div class="qtext">' + esc(p.q) + '</div><div class="opts">';
 
     it.opts.forEach(function (o, n) {
