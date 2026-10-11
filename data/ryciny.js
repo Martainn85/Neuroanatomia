@@ -4,6 +4,28 @@
    Cele: [nazwa polska, nazwa łacińska, x, y, klucz data-k]. */
 (function () {
 
+  /* ================= ryciny na wolnych licencjach (obrazy w img/) ================= */
+  NA.rycina('boczny-lynch', 'Mózgowie z boku (rycina anatomiczna)', '0 0 960 1144',
+    '<image href="img/mozg-boczny.png" x="0" y="0" width="960" height="1144"/>',
+    [
+      ['Płat czołowy', 'lobus frontalis', 250, 230],
+      ['Płat ciemieniowy', 'lobus parietalis', 680, 150],
+      ['Płat skroniowy', 'lobus temporalis', 430, 520],
+      ['Płat potyliczny', 'lobus occipitalis', 880, 420],
+      ['Bruzda środkowa', 'sulcus centralis', 497, 205],
+      ['Bruzda boczna', 'sulcus lateralis', 398, 380],
+      ['Zakręt przedśrodkowy', 'gyrus precentralis', 452, 170],
+      ['Zakręt zaśrodkowy', 'gyrus postcentralis', 512, 238],
+      ['Zakręt skroniowy górny', 'gyrus temporalis superior', 450, 412],
+      ['Biegun czołowy', 'polus frontalis', 14, 300],
+      ['Biegun skroniowy', 'polus temporalis', 245, 548],
+      ['Biegun potyliczny', 'polus occipitalis', 944, 405],
+      ['Móżdżek', 'cerebellum', 720, 640],
+      ['Pień mózgu', 'truncus encephali', 505, 665],
+      ['Rdzeń kręgowy', 'medulla spinalis', 520, 1000]
+    ],
+    'Ryc.: Patrick J. Lynch, „Brain human lateral view”, Wikimedia Commons, CC BY 2.5 (dodano znaczniki)');
+
   /* ================= widok boczny: wspólna podstawa ================= */
   var OUT = 'M62 255 C55 170 130 80 260 62 C380 45 500 80 560 165 C590 210 598 262 578 292 C560 318 520 322 480 318 C430 340 360 362 290 365 C235 367 190 350 185 318 C183 300 195 285 215 275 C180 282 110 285 62 255 Z';
   var SC = 'M350 55 C340 110 345 150 325 190 C315 215 310 228 306 240';

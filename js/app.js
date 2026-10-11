@@ -213,7 +213,7 @@
         (num ? '<text x="' + p.x + '" y="' + p.y + '" font-size="' + (r * 1.15).toFixed(1) + '">' + (p.n + 1) + '</text>' : '') + '</g>';
     });
     return '<div class="ryc"><svg viewBox="' + fig.vb + '" role="img" aria-label="' + esc(fig.tytul) + '" data-hl="' + (hl || '') + '">' +
-      fig.svg + h + '</svg></div>';
+      fig.svg + h + '</svg>' + (fig.zrodlo && pins ? '<div class="zrodlo">' + esc(fig.zrodlo) + '</div>' : '') + '</div>';
   }
   /* odbicia lustrzane i podświetlenie: po wstawieniu SVG do dokumentu */
   function dekoruj() {

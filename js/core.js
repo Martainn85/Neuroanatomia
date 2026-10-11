@@ -40,9 +40,9 @@
     },
 
     /* Rycina schematyczna. cele: [nazwa PL, nazwa łac., x, y, klucz elementu do podświetlenia] */
-    rycina: function (id, tytul, vb, svg, cele) {
+    rycina: function (id, tytul, vb, svg, cele, zrodlo) {
       NA.ryciny.push({
-        id: id, tytul: tytul, vb: vb, svg: svg,
+        id: id, tytul: tytul, vb: vb, svg: svg, zrodlo: zrodlo || '',
         cele: cele.map(function (c) { return { pl: c[0], la: c[1], x: c[2], y: c[3], el: c[4] || '' }; })
       });
     },

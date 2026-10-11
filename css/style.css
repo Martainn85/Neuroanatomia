@@ -208,3 +208,5 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .legend button { text-align: left; display: grid; grid-template-columns: 26px 1fr; gap: 6px; padding: 8px 10px; font-size: .93rem; }
 .legend button.cur { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .legend .ltr { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+.ryc .zrodlo { font-size: .72rem; color: var(--muted); text-align: right; margin-top: 4px; }
