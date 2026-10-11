@@ -333,7 +333,7 @@
     // w puli "lokalizacja i budowa": nazwy łacińskie oraz ryciny (najpierw skany z ramkami, jeśli są na dysku)
     var skany = NA.ryciny.filter(function (f) { return f.cele.some(function (c) { return c.box; }); });
     var rpula = [];
-    (skany.length ? skany : NA.ryciny).forEach(function (f) { f.cele.forEach(function (c, i) { rpula.push(rycPytanie(f, i)); }); });
+    (skany.length ? skany : NA.ryciny).forEach(function (f) { if (f.bezEgzaminu) return; f.cele.forEach(function (c, i) { rpula.push(rycPytanie(f, i)); }); });
     var ryc = sample(rpula, EGZ_RYCINY);
     var nazwy = sample(pulaNazw('all'), EGZ_NAZWY);
     var lok = wez('lok', EGZ.lok - nazwy.length - ryc.length).concat(nazwy, ryc);
