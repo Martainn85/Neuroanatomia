@@ -14,6 +14,17 @@
     przedmioty: {},  // {id: konfiguracja przedmiotu}
     kolejnosc: [],   // kolejność przedmiotów w przełączniku
     karty: [],       // fiszki pojęciowe [{id, prz, w, a, b}]
+    plany: {},       // {przedmiot: {tytul, dni:[{data, tytul, zadania:[{typ, opis, min, par}]}]}}
+
+    /* Plan nauki przedmiotu. */
+    plan: function (prz, tytul, dni) {
+      NA.plany[prz] = {
+        tytul: tytul,
+        dni: dni.map(function (d) {
+          return { data: d[0], tytul: d[1], zadania: d[2].map(function (z) { return { typ: z[0], opis: z[1], min: z[2] || 0, par: z[3] || {} }; }) };
+        })
+      };
+    },
 
     /* Przedmiot: nazwa, kategorie pytań, zasady egzaminu. */
     przedmiot: function (id, cfg) {

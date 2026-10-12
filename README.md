@@ -51,3 +51,7 @@ Folder `prywatne/` (plik `prywatne/ryciny.js` i obrazy w `prywatne/img/`) zawier
 ## Przedmioty
 
 Przedmioty i zasady ich egzaminów są w `data/przedmioty.js`. Pytania nowego przedmiotu dopisuje się tak jak wykłady, z czwartym parametrem `NA.wyklad(kod, tytul, lista, 'id-przedmiotu')`, a fiszki pojęciowe przez `NA.pojecia('id-przedmiotu', kod, [[pojęcie, wyjaśnienie], ...])`. Kody wykładów muszą być unikalne między przedmiotami (np. W1 dla neuroanatomii, NP1 dla neuropsychologii).
+
+## Plan nauki
+
+Plan dla przedmiotu to plik `data/plan-<przedmiot>.js` z wywołaniem `NA.plan(przedmiot, tytuł, dni)`; format dni i zadań jest opisany na górze `data/plan-neuroanatomia.js`. Odhaczenia zapisują się w przeglądarce.

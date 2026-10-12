@@ -9,10 +9,10 @@
   var LITERY = ['A', 'B', 'C', 'D'];
 
   /* ---------- pamięć ---------- */
-  var S = { box: {}, q: {}, exams: [], prz: NA.kolejnosc[0] };
+  var S = { box: {}, q: {}, exams: [], prz: NA.kolejnosc[0], plan: {} };
   try {
     var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; S.prz = raw.prz || S.prz; }
+    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; S.prz = raw.prz || S.prz; S.plan = raw.plan || {}; }
   } catch (e) { /* brak dostępu do pamięci: działamy bez zapisu */ }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -127,7 +127,8 @@
       '<div class="tile"><b>' + (ost ? ost.pct + '%' : 'brak') + '</b><span>' + (ost ? 'ostatni egzamin, ocena ' + ost.ocena : 'egzaminu próbnego') + '</span></div>' +
       '</div>' +
       '<div class="row" style="margin:14px 0 6px">' +
-      '<a class="btn primary" href="#egzamin">Egzamin próbny</a>' +
+      (NA.plany[P.id] ? '<a class="btn primary" href="#plan">Plan na dziś</a>' : '') +
+      '<a class="btn' + (NA.plany[P.id] ? '' : ' primary') + '" href="#egzamin">Egzamin próbny</a>' +
       '<a class="btn" href="#quiz">Quiz</a>' +
       (P.ryciny ? '<a class="btn" href="#ryciny">Ryciny</a>' : '') +
       '<a class="btn" href="#fiszki">Fiszki</a></div>' +
@@ -620,6 +621,79 @@
     window.scrollTo(0, 0);
   }
 
+  /* ---------- widok: plan nauki ---------- */
+  var DNI = ['nd', 'pn', 'wt', 'śr', 'cz', 'pt', 'so'];
+  function dzis() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function dataTxt(iso) { var p = iso.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return DNI[d.getDay()] + ' ' + (+p[2]) + '.' + p[1]; }
+  function figDla(z) {
+    var f = z.par.f;
+    if (!f) return null;
+    if (f === 'all') return 'all';
+    for (var i = 0; i < f.length; i++) if (NA.ryciny.some(function (r) { return r.id === f[i]; })) return f[i];
+    return null;
+  }
+  function kluczZad(d, i) { return P.id + '|' + d.data + '|' + i; }
+  var RODZAJ = { slajdy: 'Slajdy', rysunek: 'Rysunek', quiz: 'Quiz', egzamin: 'Egzamin', nauka: 'Nauka', wskaz: 'Wskaż', test: 'Test', przegladaj: 'Przeglądaj' };
+  function zadanieHTML(d, z, i) {
+    var k = kluczZad(d, i), ok = !!S.plan[k], f = figDla(z);
+    var akcja = { quiz: 1, egzamin: 1, nauka: 1, wskaz: 1, test: 1, przegladaj: 1 }[z.typ] && (z.typ === 'quiz' || z.typ === 'egzamin' || f);
+    if (z.typ === 'rysunek' && f) akcja = true;
+    if (!akcja && z.par.f && z.typ !== 'rysunek') return '';   // brak ryciny w tej wersji
+    return '<div class="zad' + (ok ? ' ok' : '') + '"><label class="chk"><input type="checkbox" data-act="pl-ok" data-k="' + esc(k) + '"' + (ok ? ' checked' : '') + '>' +
+      '<span><span class="tag">' + RODZAJ[z.typ] + '</span> ' + esc(z.opis) + (z.min ? ' <span class="muted small">' + z.min + ' min</span>' : '') + '</span></label>' +
+      (akcja ? '<button data-act="pl-go" data-d="' + d.data + '" data-i="' + i + '">' + (z.typ === 'rysunek' ? 'Wzór' : 'Zacznij') + '</button>' : '') + '</div>';
+  }
+  function dzienHTML(d, wyr) {
+    var zad = d.zadania.map(function (z, i) { return zadanieHTML(d, z, i); }).join('');
+    var min = d.zadania.reduce(function (a, z) { return a + z.min; }, 0);
+    var zrob = d.zadania.every(function (z, i) { return S.plan[kluczZad(d, i)]; });
+    return '<div class="card dzien' + (wyr ? ' dzis' : '') + (zrob ? ' zrobiony' : '') + '" id="d-' + d.data + '"><div class="row end"><h3>' +
+      (wyr ? 'Dziś, ' : '') + dataTxt(d.data) + ': ' + esc(d.tytul) + '</h3><span class="muted small">' + min + ' min</span></div>' + zad + '</div>';
+  }
+  function vPlan() {
+    var pl = NA.plany[P.id];
+    if (!pl) {
+      app.innerHTML = '<h1>Plan nauki</h1><div class="card"><p>Ten przedmiot nie ma jeszcze planu. Plan powstaje razem z materiałami z wykładów.</p></div>';
+      return;
+    }
+    var t = dzis(), dni = pl.dni, wsz = 0, zr = 0;
+    dni.forEach(function (d) { d.zadania.forEach(function (z, i) { wsz++; if (S.plan[kluczZad(d, i)]) zr++; }); });
+    var dz = dni.filter(function (d) { return d.data === t; })[0];
+    var nast = dz || dni.filter(function (d) { return d.data > t; })[0];
+    var h = '<h1>Plan nauki</h1><p class="muted">' + esc(pl.tytul) + '. Odhaczaj zadania po wykonaniu; „Zacznij” otwiera od razu właściwy quiz lub rycinę.</p>' +
+      '<div class="progressline"><i style="width:' + Math.round(zr / Math.max(1, wsz) * 100) + '%"></i></div>' +
+      '<p class="small muted">zrobione ' + zr + ' z ' + wsz + ' zadań</p>';
+    if (nast) h += dzienHTML(nast, nast === dz) + (nast !== dz ? '' : '');
+    else h += '<div class="card"><p>Plan na ten okres się skończył.</p></div>';
+    var zalegle = dni.filter(function (d) { return d.data < t && !d.zadania.every(function (z, i) { return S.plan[kluczZad(d, i)]; }); });
+    if (zalegle.length) h += '<p class="small muted">Nieodhaczone dni wcześniej: ' + zalegle.length + '. Nie nadrabiaj wszystkiego naraz, wystarczy dołożyć jedno zadanie dziennie.</p>';
+    h += '<h2>Cały plan</h2>';
+    var tydz = null;
+    dni.forEach(function (d) {
+      var p = d.data.split('-'), dd = new Date(+p[0], +p[1] - 1, +p[2]);
+      var pon = new Date(dd); pon.setDate(dd.getDate() - ((dd.getDay() + 6) % 7));
+      var kl = pon.toDateString();
+      if (kl !== tydz) { tydz = kl; h += '<h3 class="tydz">Tydzień od ' + pon.getDate() + '.' + ('0' + (pon.getMonth() + 1)).slice(-2) + '</h3>'; }
+      if (d !== nast) h += dzienHTML(d, false);
+    });
+    app.innerHTML = h;
+  }
+  function planIdz(d, i) {
+    var pl = NA.plany[P.id], dzien = pl.dni.filter(function (x) { return x.data === d; })[0], z = dzien.zadania[i], f = figDla(z);
+    Q = null; RN = null; W = null;
+    if (z.typ === 'quiz') {
+      qUst.kat = { naz: false };
+      Object.keys(P.kat).forEach(function (k) { qUst.kat[k] = z.par.kat.indexOf(k) >= 0; });
+      qUst.w = z.par.w || 'all'; qUst.n = String(z.par.n || 10); qUst.slabe = true;
+      quizStart(); idz('quiz');
+    } else if (z.typ === 'egzamin') { egzaminStart(); idz('egzamin'); }
+    else if (z.typ === 'nauka') { naukaStart(f); idz('ryciny'); }
+    else if (z.typ === 'wskaz') { wskazStart(f); idz('ryciny'); }
+    else if (z.typ === 'test') { rycStart(f); idz('ryciny'); }
+    else { R.f = NA.ryciny.filter(function (r) { return r.id === f; })[0]; R.sel = -1; idz('ryciny'); }
+    window.scrollTo(0, 0);
+  }
+
   /* ---------- widok: lista struktur ---------- */
   var szukaj = '';
   function vStruktury() {
@@ -660,7 +734,8 @@
     if (Q && ['quiz', 'egzamin', 'ryciny'].indexOf(v) >= 0 && Q.widok !== v) Q = null;
     if (v !== 'ryciny') { R.f = null; R.sel = -1; RN = null; W = null; }
     document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.view === v); });
-    if (v === 'fiszki') vFiszki();
+    if (v === 'plan') vPlan();
+    else if (v === 'fiszki') vFiszki();
     else if (v === 'quiz' || v === 'egzamin' || v === 'ryciny') vQuiz();
     else if (v === 'struktury') vStruktury();
     else vStart();
@@ -674,6 +749,8 @@
     var a = el.dataset.act;
     switch (a) {
       case 'prz': zmienPrzedmiot(el.dataset.p); break;
+      case 'pl-ok': S.plan[el.dataset.k] = el.checked; if (!el.checked) delete S.plan[el.dataset.k]; save(); vPlan(); break;
+      case 'pl-go': planIdz(el.dataset.d, +el.dataset.i); break;
       case 'fiszki-z': fUst.z = el.dataset.z; fUst.tylko = false; fStart(); idz('fiszki'); break;
       case 'nazwy-z':
         qUst.kat = { lok: false, fun: false, zab: false, naz: true }; qUst.z = el.dataset.z; qUst.n = 'all';
@@ -736,7 +813,7 @@
         if (confirm(brak ? 'Bez odpowiedzi: ' + brak + ' (po 0 pkt). Zakończyć egzamin?' : 'Zakończyć egzamin?')) zakoncz();
         break;
       case 'wyczysc':
-        if (confirm('Usunąć wszystkie zapisane postępy w tej przeglądarce?')) { S = { box: {}, q: {}, exams: [], prz: P.id }; save(); render(); }
+        if (confirm('Usunąć wszystkie zapisane postępy w tej przeglądarce?')) { S = { box: {}, q: {}, exams: [], prz: P.id, plan: {} }; save(); render(); }
         break;
     }
   });

@@ -232,3 +232,15 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .ryc .pin.good .ramka { stroke: #2f9e5b; stroke-width: 4; stroke-dasharray: none; fill: rgba(47, 158, 91, .2); opacity: 1; }
 .ryc .pin.bad .dot { fill: #d2413a; stroke: #fff; }
 .ryc .pin.bad .ramka { stroke: #d2413a; stroke-width: 4; stroke-dasharray: none; fill: rgba(210, 65, 58, .18); opacity: 1; }
+
+/* plan */
+.dzien h3 { font-size: 1rem; margin: 0; }
+.dzien.dzis { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.dzien.zrobiony { opacity: .7; }
+.zad { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); }
+.zad:first-of-type { margin-top: 10px; }
+.zad .chk { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.zad .chk input { margin-top: 4px; accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+.zad.ok .chk > span { text-decoration: line-through; color: var(--muted); }
+.zad button { flex: none; padding: 6px 12px; font-size: .9rem; }
+h3.tydz { margin: 22px 0 8px; font-size: .95rem; color: var(--muted); font-family: system-ui, sans-serif; font-weight: 600; }
