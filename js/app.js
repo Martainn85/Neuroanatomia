@@ -247,15 +247,17 @@
     if (maski) fig.cele.forEach(function (c, i) { if (c.box && maski !== i + 1) h += rect(c.box, 'maska'); });
     if (maski) fig.zaslon.forEach(function (b) { h += rect(b, 'maska'); });
     (pins || []).forEach(function (p) {
-      var num = p.n != null;
+      var num = p.n != null, act = num ? ' data-act="' + (p.act || 'r-sel') + '" data-n="' + p.n + '"' : '';
+      var cls = 'pin' + (p.sel || !num ? ' sel' : '') + (p.cls ? ' ' + p.cls : '') + (p.cicho ? ' cicho' : '');
       if (p.box) {
-        h += '<g class="pin' + (p.sel || !num ? ' sel' : '') + '"' + (num ? ' data-act="r-sel" data-n="' + p.n + '"' : '') + '>' + rect(p.box, 'ramka') + '</g>';
+        h += '<g class="' + cls + '"' + act + '>' + rect(p.box, 'ramka') + '</g>';
         return;
       }
-      h += '<g class="pin' + (p.sel ? ' sel' : '') + '"' + (num ? ' data-act="r-sel" data-n="' + p.n + '"' : '') + '>' +
+      h += '<g class="' + cls.replace(' sel', p.sel ? ' sel' : '') + '"' + act + '>' +
         (p.sel || !num ? '<circle class="ring" cx="' + p.x + '" cy="' + p.y + '" r="' + (r * 1.9).toFixed(1) + '"/>' : '') +
-        '<circle class="dot" cx="' + p.x + '" cy="' + p.y + '" r="' + (num ? r : r * 0.8).toFixed(1) + '"/>' +
-        (num ? '<text x="' + p.x + '" y="' + p.y + '" font-size="' + (r * 1.15).toFixed(1) + '">' + (p.n + 1) + '</text>' : '') + '</g>';
+        (p.cicho ? '<circle class="hit" cx="' + p.x + '" cy="' + p.y + '" r="' + (r * 1.6).toFixed(1) + '"/>' : '') +
+        '<circle class="dot" cx="' + p.x + '" cy="' + p.y + '" r="' + (num ? (p.cicho ? r * 0.75 : r) : r * 0.8).toFixed(1) + '"/>' +
+        (num && !p.cicho ? '<text x="' + p.x + '" y="' + p.y + '" font-size="' + (r * 1.15).toFixed(1) + '">' + (p.n + 1) + '</text>' : '') + '</g>';
     });
     return '<div class="ryc"><svg viewBox="' + fig.vb + '" role="img" aria-label="' + esc(fig.tytul) + '" data-hl="' + (hl || '') + '">' +
       fig.svg + h + '</svg>' + (fig.zrodlo && pins ? '<div class="zrodlo">' + esc(fig.zrodlo) + '</div>' : '') + '</div>';
@@ -300,19 +302,104 @@
     vQuiz();
   }
 
+  /* ---------- nauka na rycinach: fiszki i „wskaż na rycinie” ---------- */
+  var RN = null, W = null;
+  function rk(f, i) { return 'R-' + f.id + '-' + i; }
+  function figi(fid) { return NA.ryciny.filter(function (f) { return fid === 'all' || f.id === fid; }); }
+  function celeZ(fid, n) {
+    var l = [];
+    figi(fid).forEach(function (f) { f.cele.forEach(function (c, i) { l.push({ f: f, i: i }); }); });
+    l = shuffle(l);
+    l.sort(function (a, b) { return box(rk(a.f, a.i)) - box(rk(b.f, b.i)); });   // najpierw nieopanowane
+    return n ? l.slice(0, n) : l;
+  }
+  function naukaStart(fid) {
+    var l = celeZ(fid, fid === 'all' ? 25 : 0);
+    RN = { fid: fid, q: l, k: 0, pokaz: false, umiem: 0, nie: 0, n: l.length };
+    vNauka();
+  }
+  function vNauka() {
+    if (RN.k >= RN.q.length) {
+      app.innerHTML = '<h1>Nauka na rycinach</h1><div class="card score"><div class="big">' + RN.n + '</div><div class="grade">oznaczeń przerobionych</div>' +
+        '<p class="muted" style="margin-top:10px">Powtórek po błędzie: ' + RN.nie + '</p>' +
+        '<div class="row" style="justify-content:center;margin-top:12px"><button class="primary" data-act="n-start" data-f="' + RN.fid + '">Jeszcze raz</button>' +
+        '<button data-act="n-wyjdz">Wróć do rycin</button></div></div>';
+      return;
+    }
+    var it = RN.q[RN.k], f = it.f, c = f.cele[it.i];
+    var h = '<div class="qmeta"><span>' + esc(f.tytul) + '</span><span>opanowane w tej sesji: ' + RN.umiem + ' / ' + RN.n + '</span></div>' +
+      '<div class="progressline"><i style="width:' + Math.round(RN.umiem / Math.max(1, RN.n) * 100) + '%"></i></div>' +
+      '<div class="card">' + figSVG(f, [{ x: c.x, y: c.y, box: c.box }], c.el, f.maska ? (RN.pokaz ? it.i + 1 : true) : false) +
+      '<div class="figinfo">' + (RN.pokaz
+        ? '<b>' + (c.nr ? esc(c.nr) + '. ' : '') + esc(c.pl) + '</b>' + (c.la ? ' <span class="la muted">' + esc(c.la) + '</span>' : '')
+        : '<span class="muted">Co jest zaznaczone? Nazwij w myślach, potem odsłoń.</span>') + '</div></div>' +
+      (RN.pokaz ? '<div class="row"><button data-act="n-nie">Nie umiem (1)</button><button class="primary" data-act="n-tak">Umiem (2)</button></div>'
+        : '<div class="row"><button class="primary" data-act="n-pokaz">Pokaż odpowiedź (spacja)</button></div>') +
+      '<p style="margin-top:18px"><button class="ghost small" data-act="n-wyjdz">Zakończ</button></p>';
+    app.innerHTML = h; dekoruj();
+  }
+  function naukaOdp(umiem) {
+    var it = RN.q[RN.k], id = rk(it.f, it.i);
+    if (umiem) { S.box[id] = Math.min(3, box(id) + 1); RN.umiem++; }
+    else { S.box[id] = 0; RN.nie++; RN.q.push(it); }
+    save(); RN.k++; RN.pokaz = false; vNauka();
+  }
+
+  function wskazStart(fid) {
+    var l = celeZ(fid, fid === 'all' ? 20 : 0);
+    W = { fid: fid, q: l, k: 0, klik: null, ok: 0, zle: [] };
+    vWskaz();
+  }
+  function vWskaz() {
+    if (W.k >= W.q.length) {
+      var h = '<h1>Wskaż na rycinie: wynik</h1><div class="card score"><div class="big">' + W.ok + ' / ' + W.q.length + '</div>' +
+        '<div class="grade">trafień za pierwszym razem</div></div>';
+      if (W.zle.length) {
+        h += '<h2>Do powtórki</h2><div class="card"><ol class="review">';
+        W.zle.forEach(function (x) { h += '<li><b>' + esc(x.f.cele[x.i].pl) + '</b> <span class="small muted">' + esc(x.f.tytul) + '</span></li>'; });
+        h += '</ol></div>';
+      }
+      app.innerHTML = h + '<div class="row"><button class="primary" data-act="w-start" data-f="' + W.fid + '">Jeszcze raz</button><button data-act="n-wyjdz">Wróć do rycin</button></div>';
+      return;
+    }
+    var it = W.q[W.k], f = it.f, c = f.cele[it.i], odp = W.klik !== null;
+    var trafil = odp && f.cele[W.klik].pl === c.pl;
+    var pins = f.cele.map(function (x, i) {
+      var cls = '';
+      if (odp && x.pl === c.pl) cls = 'good';
+      else if (odp && i === W.klik) cls = 'bad';
+      return { x: x.x, y: x.y, box: x.box, n: i, act: odp ? 'w-nic' : 'w-klik', cicho: true, cls: cls };
+    });
+    var h = '<div class="qmeta"><span>' + (W.k + 1) + ' z ' + W.q.length + ' <span class="tag">' + esc(f.tytul) + '</span></span><span>trafienia: ' + W.ok + '</span></div>' +
+      '<div class="progressline"><i style="width:' + Math.round(W.k / W.q.length * 100) + '%"></i></div>' +
+      '<div class="card"><div class="qtext">Wskaż na rycinie: ' + esc(c.pl) + (c.la ? ' <span class="la muted small">(' + esc(c.la) + ')</span>' : '') + '</div>' +
+      figSVG(f, pins, odp ? c.el : '', f.maska) +
+      (odp ? '<div class="verdict ' + (trafil ? 'ok' : 'bad') + '">' + (trafil ? 'Trafione.' : 'Nie tutaj. Właściwe miejsce jest zaznaczone na zielono' +
+        (f.cele[W.klik].pl ? ', a kliknięte to: ' + esc(f.cele[W.klik].pl) : '') + '.') + '</div>'
+        : '<div class="figinfo muted">Dotknij znacznika lub ramki w odpowiednim miejscu.</div>') + '</div>' +
+      '<div class="row end"><button class="ghost" data-act="n-wyjdz">Zakończ</button>' +
+      (odp ? '<button class="primary" data-act="w-dalej">' + (W.k === W.q.length - 1 ? 'Zobacz wynik' : 'Dalej (Enter)') + '</button>' : '') + '</div>';
+    app.innerHTML = h; dekoruj();
+  }
+
   var R = { f: null, sel: -1, ukryj: false };
   function vRyciny() {
     var h;
     if (!R.f) {
       var ile = NA.ryciny.reduce(function (a, f) { return a + f.cele.length; }, 0);
-      h = '<h1>Ryciny</h1><p class="muted">Schematy własne, uproszczone: pokazują położenie struktur względem siebie, a nie dokładny kształt. ' +
-        'W trybie nauki dotknij numeru, w teście rozpoznaj zaznaczoną strukturę.</p>' +
-        '<p><button class="primary" data-act="r-test" data-f="all">Test ze wszystkich rycin (20 pytań)</button></p><div class="figs">';
+      h = '<h1>Ryciny</h1><p class="muted">Schematy własne są uproszczone: pokazują położenie struktur względem siebie, a nie dokładny kształt. ' +
+        'Przeglądaj, żeby poznać rycinę, potem ćwicz w trybach Nauka i Wskaż, a na końcu sprawdź się w teście.</p>' +
+        '<div class="card"><h3 style="margin-top:0">Wszystkie ryciny naraz</h3><p class="small muted">Nauka: zaznaczona struktura, odsłaniasz nazwę i oceniasz się sam; nieopanowane wracają. ' +
+        'Wskaż: dostajesz nazwę i dotykasz właściwego miejsca. Test: cztery odpowiedzi, punktacja egzaminu.</p>' +
+        '<div class="row"><button class="primary" data-act="n-start" data-f="all">Nauka (25)</button>' +
+        '<button data-act="w-start" data-f="all">Wskaż (20)</button><button data-act="r-test" data-f="all">Test (20)</button></div></div><div class="figs">';
       NA.ryciny.forEach(function (f) {
-        var um = f.cele.filter(function (c, i) { var st = S.q['R-' + f.id + '-' + i]; return st && st.ok > 0; }).length;
+        var um = f.cele.filter(function (c, i) { var st = S.q['R-' + f.id + '-' + i]; return mastered('R-' + f.id + '-' + i) || (st && st.ok > 0); }).length;
         h += '<div class="card fig">' + figSVG(f) + '<h3>' + esc(f.tytul) + '</h3>' +
-          '<p class="small muted">rozpoznane ' + um + ' / ' + f.cele.length + '</p>' +
-          '<div class="row"><button data-act="r-open" data-f="' + f.id + '">Ucz się</button>' +
+          '<p class="small muted">opanowane lub rozpoznane ' + um + ' / ' + f.cele.length + '</p>' +
+          '<div class="row"><button data-act="r-open" data-f="' + f.id + '">Przeglądaj</button>' +
+          '<button data-act="n-start" data-f="' + f.id + '">Nauka</button>' +
+          '<button data-act="w-start" data-f="' + f.id + '">Wskaż</button>' +
           '<button data-act="r-test" data-f="' + f.id + '">Test</button></div></div>';
       });
       h += '</div><p class="small muted">Razem ' + ile + ' oznaczeń na ' + NA.ryciny.length + ' rycinach.</p>';
@@ -324,7 +411,8 @@
       '<div class="figinfo">' + (sel ? '<b>' + esc(sel.nr || (f.maska ? '' : R.sel + 1)) + (sel.nr || !f.maska ? '. ' : '') + esc(sel.pl) + '</b>' + (sel.la ? ' <span class="la muted">' + esc(sel.la) + '</span>' : '')
         : '<span class="muted">Dotknij numeru na rycinie albo na liście.</span>') + '</div></div>' +
       '<div class="row end"><label class="chip"><input type="checkbox" data-act="r-ukryj"' + (R.ukryj ? ' checked' : '') + '> ukryj nazwy na liście</label>' +
-      '<button class="primary" data-act="r-test" data-f="' + f.id + '">Test z tej ryciny</button></div><div class="legend">';
+      '<div class="row"><button data-act="n-start" data-f="' + f.id + '">Nauka</button><button data-act="w-start" data-f="' + f.id + '">Wskaż</button>' +
+      '<button class="primary" data-act="r-test" data-f="' + f.id + '">Test</button></div></div><div class="legend">';
     f.cele.forEach(function (c, i) {
       var pokaz = !R.ukryj || i === R.sel;
       h += '<button data-act="r-sel" data-n="' + i + '" class="' + (i === R.sel ? 'cur' : '') + '"><span class="ltr">' + esc(c.nr || i + 1) + '</span>' +
@@ -422,7 +510,12 @@
   }
 
   function vQuiz() {
-    if (!Q) { var w0 = widok(); return w0 === 'egzamin' ? vEgzaminStart() : w0 === 'ryciny' ? vRyciny() : vQuizUstawienia(); }
+    if (!Q) {
+      var w0 = widok();
+      if (w0 === 'ryciny' && RN) return vNauka();
+      if (w0 === 'ryciny' && W) return vWskaz();
+      return w0 === 'egzamin' ? vEgzaminStart() : w0 === 'ryciny' ? vRyciny() : vQuizUstawienia();
+    }
     if (Q.koniec) return vWynik();
     var it = Q.items[Q.i], p = it.p, egz = Q.tryb === 'egzamin';
     var odsl = !egz && Q.pokaz;
@@ -565,7 +658,7 @@
     var br = document.getElementById('brand'); if (br) br.textContent = P.nazwa;
     document.querySelectorAll('#nav a[data-need]').forEach(function (a) { a.hidden = !P[a.dataset.need]; });
     if (Q && ['quiz', 'egzamin', 'ryciny'].indexOf(v) >= 0 && Q.widok !== v) Q = null;
-    if (v !== 'ryciny') { R.f = null; R.sel = -1; }
+    if (v !== 'ryciny') { R.f = null; R.sel = -1; RN = null; W = null; }
     document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.view === v); });
     if (v === 'fiszki') vFiszki();
     else if (v === 'quiz' || v === 'egzamin' || v === 'ryciny') vQuiz();
@@ -611,7 +704,24 @@
         break;
       case 'q-przerwij': zakoncz(); break;
       case 'q-reset': Q = null; render(); break;
-      case 'r-test': rycStart(el.dataset.f); window.scrollTo(0, 0); break;
+      case 'r-test': RN = null; W = null; rycStart(el.dataset.f); window.scrollTo(0, 0); break;
+      case 'n-start': Q = null; W = null; naukaStart(el.dataset.f); window.scrollTo(0, 0); break;
+      case 'n-pokaz': RN.pokaz = true; vNauka(); break;
+      case 'n-tak': naukaOdp(true); break;
+      case 'n-nie': naukaOdp(false); break;
+      case 'n-wyjdz': RN = null; W = null; Q = null; vRyciny(); window.scrollTo(0, 0); break;
+      case 'w-start': Q = null; RN = null; wskazStart(el.dataset.f); window.scrollTo(0, 0); break;
+      case 'w-klik':
+        if (W.klik === null) {
+          W.klik = +el.dataset.n;
+          var it = W.q[W.k];
+          if (it.f.cele[W.klik].pl === it.f.cele[it.i].pl) W.ok++; else W.zle.push(it);
+          var st = S.q[rk(it.f, it.i)] || (S.q[rk(it.f, it.i)] = { ok: 0, bad: 0 });
+          if (it.f.cele[W.klik].pl === it.f.cele[it.i].pl) st.ok++; else st.bad++;
+          save(); vWskaz();
+        }
+        break;
+      case 'w-dalej': W.k++; W.klik = null; vWskaz(); window.scrollTo(0, 0); break;
       case 'r-open': R.f = NA.ryciny.filter(function (f) { return f.id === el.dataset.f; })[0]; R.sel = -1; vRyciny(); window.scrollTo(0, 0); break;
       case 'r-back': R.f = null; vRyciny(); break;
       case 'r-sel': R.sel = +el.dataset.n; vRyciny(); break;
@@ -636,6 +746,13 @@
     var v = widok(), k = ev.key.toLowerCase();
     // Enter i spacja na przycisku lub linku działają natywnie, nie dublujemy ich
     if ((k === ' ' || k === 'enter') && ev.target.closest('button, a')) return;
+    if (v === 'ryciny' && RN && RN.k < RN.q.length) {
+      if ((k === ' ' || k === 'enter') && !RN.pokaz) { ev.preventDefault(); RN.pokaz = true; vNauka(); }
+      else if (RN.pokaz && k === '1') naukaOdp(false);
+      else if (RN.pokaz && k === '2') naukaOdp(true);
+      return;
+    }
+    if (v === 'ryciny' && W && W.klik !== null && k === 'enter') { ev.preventDefault(); W.k++; W.klik = null; vWskaz(); return; }
     if (v === 'fiszki' && F && F.i < F.q.length) {
       if (k === ' ' || k === 'enter') { ev.preventDefault(); F.flip = !F.flip; vFiszki(); }
       else if (F.flip && k === '1') fOdp(false);

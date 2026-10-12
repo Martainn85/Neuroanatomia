@@ -221,3 +221,14 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .subjects { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
 .subjects button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .flash .term.long, .flash .answer.long { font-size: 1.05rem; font-family: system-ui, sans-serif; font-weight: 500; line-height: 1.5; }
+
+/* tryb „wskaż” */
+.ryc .pin.cicho { cursor: pointer; }
+.ryc .pin.cicho .hit { fill: transparent; }
+.ryc .pin.cicho .dot { fill: #fff; stroke: var(--accent); stroke-width: 2.5; }
+.ryc .pin.cicho .ramka { opacity: .8; stroke-dasharray: 4 3; }
+.ryc .pin.cicho:hover .dot { fill: var(--hl); }
+.ryc .pin.good .dot { fill: #2f9e5b; stroke: #fff; }
+.ryc .pin.good .ramka { stroke: #2f9e5b; stroke-width: 4; stroke-dasharray: none; fill: rgba(47, 158, 91, .2); opacity: 1; }
+.ryc .pin.bad .dot { fill: #d2413a; stroke: #fff; }
+.ryc .pin.bad .ramka { stroke: #d2413a; stroke-width: 4; stroke-dasharray: none; fill: rgba(210, 65, 58, .18); opacity: 1; }
