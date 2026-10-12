@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Neuroanatomia: nauka i quizy</title>
-  <meta name="description" content="Fiszki, quizy i egzamin próbny z neuroanatomii.">
+  <title>Nauka do egzaminów: psychologia</title>
+  <meta name="description" content="Fiszki, quizy i egzaminy próbne: neuroanatomia, neuropsychologia kliniczna.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="#start" data-view="start">Neuroanatomia</a>
+    <a class="brand" href="#start" data-view="start" id="brand">Neuroanatomia</a>
+    <label class="przel"><span class="sr">Przedmiot</span><select id="prz" aria-label="Przedmiot"></select></label>
     <nav id="nav" aria-label="Główna nawigacja">
       <a href="#start" data-view="start">Start</a>
       <a href="#fiszki" data-view="fiszki">Fiszki</a>
       <a href="#quiz" data-view="quiz">Quiz</a>
-      <a href="#ryciny" data-view="ryciny">Ryciny</a>
+      <a href="#ryciny" data-view="ryciny" data-need="ryciny">Ryciny</a>
       <a href="#egzamin" data-view="egzamin">Egzamin próbny</a>
-      <a href="#struktury" data-view="struktury">Struktury</a>
+      <a href="#struktury" data-view="struktury" data-need="struktury">Struktury</a>
     </nav>
   </header>
 
@@ -27,11 +28,14 @@
   </footer>
 
   <script src="js/core.js"></script>
-  <!-- DANE: nowe wykłady dopisuj poniżej jako kolejne pliki data/pytania-wN.js -->
+  <!-- DANE: przedmioty, potem ich wykłady (kolejne pliki data/...) -->
+  <script src="data/przedmioty.js"></script>
   <script src="data/struktury.js"></script>
   <script src="data/pytania-w1.js"></script>
   <script src="data/pytania-w2.js"></script>
   <script src="data/ryciny.js"></script>
+  <script src="data/neuropsychologia-w1.js"></script>
+  <script src="data/neuropsychologia-w2.js"></script>
   <!-- Paczka prywatna (tylko na dysku, poza repozytorium): brak pliku nie jest błędem -->
   <script src="prywatne/ryciny.js" onerror="void 0"></script>
   <script src="js/app.js"></script>

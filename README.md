@@ -1,4 +1,4 @@
-# Neuroanatomia: nauka i quizy
+# Nauka do egzaminów: neuroanatomia i neuropsychologia kliniczna
 
 Statyczna strona do nauki neuroanatomii: fiszki (nazwy polskie i łacińskie), quiz z punktacją egzaminacyjną, test na rycinach, egzamin próbny i lista 80 struktur. Czysty HTML, CSS i JavaScript, bez instalacji i bez etapu budowania.
 
@@ -47,3 +47,7 @@ Zapisują się w `localStorage` przeglądarki, osobno na każdym urządzeniu. Mo
 ## Ryciny prywatne (tylko na dysku)
 
 Folder `prywatne/` (plik `prywatne/ryciny.js` i obrazy w `prywatne/img/`) zawiera ryciny z własnych książek i slajdów. Jest w `.gitignore`, więc nie trafia do repozytorium ani na publiczną stronę. Strona ładuje go tylko wtedy, gdy istnieje obok `index.html`.
+
+## Przedmioty
+
+Przedmioty i zasady ich egzaminów są w `data/przedmioty.js`. Pytania nowego przedmiotu dopisuje się tak jak wykłady, z czwartym parametrem `NA.wyklad(kod, tytul, lista, 'id-przedmiotu')`, a fiszki pojęciowe przez `NA.pojecia('id-przedmiotu', kod, [[pojęcie, wyjaśnienie], ...])`. Kody wykładów muszą być unikalne między przedmiotami (np. W1 dla neuroanatomii, NP1 dla neuropsychologii).

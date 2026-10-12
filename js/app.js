@@ -1,22 +1,33 @@
-/* Aplikacja: fiszki, quiz, egzamin próbny, lista struktur. Bez zależności. */
+/* Aplikacja: przedmioty, fiszki, quiz, egzamin próbny, ryciny, lista struktur. Bez zależności. */
 (function () {
   'use strict';
 
   var app = document.getElementById('app');
   var KEY = 'neuroanatomia_v1';
-  var KAT = { lok: 'Lokalizacja i budowa', fun: 'Funkcje', zab: 'Zaburzenia', naz: 'Nazwy łacińskie', ryc: 'Ryciny' };
-  var EGZ = { lok: 14, fun: 14, zab: 7 };     // skład egzaminu wg wykładu 1
-  var EGZ_RYCINY = 4;                         // ile z 14 pytań "lok" to pytania z rycin
-  var EGZ_NAZWY = 2;                          // ile z 14 pytań "lok" to pytania o nazwy
+  var KAT = { naz: 'Nazwy łacińskie', ryc: 'Ryciny' };
+  NA.kolejnosc.forEach(function (id) { var k = NA.przedmioty[id].kat; for (var x in k) KAT[x] = k[x]; });
   var LITERY = ['A', 'B', 'C', 'D'];
 
   /* ---------- pamięć ---------- */
-  var S = { box: {}, q: {}, exams: [] };
+  var S = { box: {}, q: {}, exams: [], prz: NA.kolejnosc[0] };
   try {
     var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; }
+    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; S.prz = raw.prz || S.prz; }
   } catch (e) { /* brak dostępu do pamięci: działamy bez zapisu */ }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  /* ---------- przedmiot ---------- */
+  var P = NA.przedmioty[S.prz] || NA.przedmioty[NA.kolejnosc[0]];
+  function pyt() { return NA.pytania.filter(function (p) { return p.prz === P.id; }); }
+  function wyklady() { return Object.keys(NA.wyklady).filter(function (k) { return (NA.wykladPrz[k] || 'neuroanatomia') === P.id; }); }
+  function egzaminy() { return S.exams.filter(function (e) { return (e.prz || 'neuroanatomia') === P.id; }); }
+  function pkt() { return P.egzamin.pkt; }
+  function zmienPrzedmiot(id) {
+    if (!NA.przedmioty[id]) return;
+    S.prz = id; P = NA.przedmioty[id]; save();
+    Q = null; F = null; R.f = null;
+    idz('start');
+  }
 
   /* ---------- pomocnicze ---------- */
   function esc(s) {
@@ -36,11 +47,8 @@
   function box(id) { return S.box[id] || 0; }
   function mastered(id) { return box(id) >= 2; }
   function ocena(pct) {
-    if (pct >= 91) return '5';
-    if (pct >= 81) return '4,5';
-    if (pct >= 71) return '4';
-    if (pct >= 61) return '3,5';
-    if (pct >= 50) return '3';
+    var sk = P.egzamin.skala;
+    for (var i = 0; i < sk.length; i++) if (pct >= sk[i][0]) return sk[i][1];
     return '2';
   }
   var ALL = NA.wszystkieStruktury();
@@ -75,8 +83,9 @@
       else if (it.chosen === it.ci) { r.ok++; c.ok++; }
       else { r.bad++; c.bad++; }
     });
-    r.pts = 2 * r.ok - r.bad;
-    r.max = 2 * items.length;
+    var w = pkt();
+    r.pts = w[0] * r.ok + w[2] * r.bad;
+    r.max = w[0] * items.length;
     r.pct = r.max ? Math.max(0, Math.round(r.pts / r.max * 100)) : 0;
     return r;
   }
@@ -96,29 +105,37 @@
 
   /* ---------- widok: start ---------- */
   function vStart() {
-    var opan = ALL.filter(function (s) { return mastered(s.id); }).length;
-    var zal = NA.pytania.filter(function (p) { return S.q[p.id] && S.q[p.id].ok > 0; }).length;
-    var ost = S.exams[S.exams.length - 1];
-    var wyk = Object.keys(NA.wyklady);
-    var licz = { lok: 0, fun: 0, zab: 0 };
-    NA.pytania.forEach(function (p) { licz[p.k]++; });
+    var karty = kartyPrzedmiotu();
+    var opan = karty.filter(function (s) { return mastered(s.id); }).length;
+    var lp = pyt();
+    var zal = lp.filter(function (p) { return S.q[p.id] && S.q[p.id].ok > 0; }).length;
+    var eg = egzaminy(), ost = eg[eg.length - 1];
+    var wyk = wyklady();
+    var licz = {};
+    Object.keys(P.kat).forEach(function (k) { licz[k] = 0; });
+    lp.forEach(function (p) { licz[p.k] = (licz[p.k] || 0) + 1; });
 
-    var h = '<h1>Neuroanatomia</h1>' +
-      '<p class="muted">80 struktur w 12 zestawach oraz pytania w formacie egzaminu: 2 pkt za dobrą odpowiedź, 0 za brak, minus 1 za błędną.</p>' +
+    var h = '<div class="subjects">';
+    NA.kolejnosc.forEach(function (id) {
+      h += '<button data-act="prz" data-p="' + id + '" class="' + (id === P.id ? 'on' : '') + '">' + esc(NA.przedmioty[id].nazwa) + '</button>';
+    });
+    h += '</div><h1>' + esc(P.nazwa) + '</h1>' +
+      '<p class="muted">' + esc(P.prowadzacy ? P.prowadzacy + '. ' : '') + esc(P.egzamin.opis) + '</p>' +
       '<div class="tiles">' +
-      '<div class="tile"><b>' + opan + ' / ' + ALL.length + '</b><span>struktur opanowanych</span></div>' +
-      '<div class="tile"><b>' + zal + ' / ' + NA.pytania.length + '</b><span>pytań zaliczonych</span></div>' +
+      '<div class="tile"><b>' + opan + ' / ' + karty.length + '</b><span>' + (P.struktury ? 'struktur opanowanych' : 'fiszek opanowanych') + '</span></div>' +
+      '<div class="tile"><b>' + zal + ' / ' + lp.length + '</b><span>pytań zaliczonych</span></div>' +
       '<div class="tile"><b>' + (ost ? ost.pct + '%' : 'brak') + '</b><span>' + (ost ? 'ostatni egzamin, ocena ' + ost.ocena : 'egzaminu próbnego') + '</span></div>' +
       '</div>' +
       '<div class="row" style="margin:14px 0 6px">' +
       '<a class="btn primary" href="#egzamin">Egzamin próbny</a>' +
       '<a class="btn" href="#quiz">Quiz</a>' +
-      '<a class="btn" href="#ryciny">Ryciny</a>' +
+      (P.ryciny ? '<a class="btn" href="#ryciny">Ryciny</a>' : '') +
       '<a class="btn" href="#fiszki">Fiszki</a></div>' +
-      '<p class="small muted">Pytania pisane obejmują wykłady: ' + esc(wyk.join(', ')) +
-      ' (budowa ' + licz.lok + ', funkcje ' + licz.fun + ', zaburzenia ' + licz.zab +
-      '). Nazwy łacińskie są dostępne dla wszystkich zestawów.</p>' +
-      '<h2>Zestawy struktur</h2><div class="sets">';
+      '<p class="small muted">Pytania obejmują wykłady: ' + esc(wyk.map(function (k) { return k + ' (' + NA.wyklady[k] + ')'; }).join(', ')) + '. ' +
+      esc(Object.keys(P.kat).map(function (k) { return P.kat[k] + ': ' + licz[k]; }).join(', ')) + '.' +
+      (P.struktury ? ' Nazwy łacińskie są dostępne dla wszystkich zestawów.' : '') + '</p>';
+    if (!P.struktury) { app.innerHTML = h; return; }
+    h += '<h2>Zestawy struktur</h2><div class="sets">';
 
     NA.zestawy.forEach(function (z) {
       var m = z.struktury.filter(function (s) { return mastered(s.id); }).length;
@@ -136,9 +153,22 @@
   var F = null;
   var fUst = { z: 'all', dir: 'pl', tylko: false };
 
+  /* Karty bieżącego przedmiotu: struktury (polska / łacińska) albo pojęcia (pojęcie / wyjaśnienie). */
+  function kartyPrzedmiotu() {
+    if (P.struktury) return ALL.map(function (s) { return { id: s.id, gr: s.zestaw, pl: s.pl, la: s.la }; });
+    return NA.karty.filter(function (k) { return k.prz === P.id; })
+      .map(function (k) { return { id: k.id, gr: k.w, pl: k.a, la: k.b, poj: true }; });
+  }
+  function grupy() {
+    if (P.struktury) return NA.zestawy.map(function (z) { return { v: String(z.nr), t: z.nr + '. ' + z.tytul, n: z.struktury.length }; });
+    var kk = kartyPrzedmiotu();
+    return wyklady().map(function (w) { return { v: w, t: w + ': ' + NA.wyklady[w], n: kk.filter(function (k) { return k.gr === w; }).length }; })
+      .filter(function (g) { return g.n; });
+  }
+
   function fStart() {
-    var lista = ALL.filter(function (s) {
-      return (fUst.z === 'all' || s.zestaw === +fUst.z) && (!fUst.tylko || !mastered(s.id));
+    var lista = kartyPrzedmiotu().filter(function (s) {
+      return (fUst.z === 'all' || String(s.gr) === String(fUst.z)) && (!fUst.tylko || !mastered(s.id));
     });
     F = {
       q: shuffle(lista).map(function (s) {
@@ -152,16 +182,18 @@
 
   function vFiszki() {
     if (!F) {
-      var o = '<option value="all">Wszystkie zestawy (80)</option>';
-      NA.zestawy.forEach(function (z) {
-        o += '<option value="' + z.nr + '"' + (String(fUst.z) === String(z.nr) ? ' selected' : '') + '>' +
-          z.nr + '. ' + esc(z.tytul) + ' (' + z.struktury.length + ')</option>';
+      var o = '<option value="all">' + (P.struktury ? 'Wszystkie zestawy' : 'Wszystkie wykłady') + ' (' + kartyPrzedmiotu().length + ')</option>';
+      grupy().forEach(function (g) {
+        o += '<option value="' + esc(g.v) + '"' + (String(fUst.z) === g.v ? ' selected' : '') + '>' + esc(g.t) + ' (' + g.n + ')</option>';
       });
-      app.innerHTML = '<h1>Fiszki</h1><p class="muted">Nazwa polska i łacińska. Karta oznaczona „nie umiem” wraca na koniec kolejki. Struktura liczy się jako opanowana po dwóch trafieniach z rzędu.</p>' +
+      app.innerHTML = '<h1>Fiszki</h1><p class="muted">' + (P.struktury ? 'Nazwa polska i łacińska.' : 'Pojęcia z wykładów i ich wyjaśnienia.') +
+        ' Karta oznaczona „nie umiem” wraca na koniec kolejki. Karta liczy się jako opanowana po dwóch trafieniach z rzędu.</p>' +
         '<div class="card"><div class="fields">' +
-        '<label class="field">Zestaw<select id="f-z">' + o + '</select></label>' +
+        '<label class="field">' + (P.struktury ? 'Zestaw' : 'Wykład') + '<select id="f-z">' + o + '</select></label>' +
         '<label class="field">Kierunek<select id="f-dir">' +
-        '<option value="pl">polska → łacińska</option><option value="la">łacińska → polska</option><option value="mix">mieszany</option>' +
+        (P.struktury ? '<option value="pl">polska → łacińska</option><option value="la">łacińska → polska</option>'
+          : '<option value="pl">pojęcie → wyjaśnienie</option><option value="la">wyjaśnienie → pojęcie</option>') +
+        '<option value="mix">mieszany</option>' +
         '</select></label></div>' +
         '<div class="chips"><label class="chip"><input type="checkbox" id="f-tylko"' + (fUst.tylko ? ' checked' : '') + '> tylko nieopanowane</label></div>' +
         '<button class="primary" data-act="f-start">Zacznij</button></div>';
@@ -181,12 +213,14 @@
     var przod = c.dir === 'pl' ? c.s.pl : c.s.la;
     var tyl = c.dir === 'pl' ? c.s.la : c.s.pl;
     var zrobione = F.n ? Math.round(F.umiem / F.n * 100) : 0;
-    app.innerHTML = '<div class="qmeta"><span>Zestaw ' + c.s.zestaw + '</span><span>opanowane w tej sesji: ' + F.umiem + ' / ' + F.n + '</span></div>' +
+    var poj = c.s.poj, dl = function (t) { return t.length > 60 ? ' long' : ''; };
+    var laP = !poj && c.dir === 'la', laT = !poj && c.dir === 'pl';
+    app.innerHTML = '<div class="qmeta"><span>' + (poj ? esc(c.s.gr) : 'Zestaw ' + c.s.gr) + '</span><span>opanowane w tej sesji: ' + F.umiem + ' / ' + F.n + '</span></div>' +
       '<div class="progressline"><i style="width:' + zrobione + '%"></i></div>' +
       '<div class="card flash" data-act="f-flip" role="button" tabindex="0" aria-label="Odwróć kartę">' +
-      '<div><div class="side">' + (c.dir === 'pl' ? 'po polsku' : 'po łacinie') + '</div>' +
-      '<div class="term' + (c.dir === 'la' ? ' la' : '') + '">' + esc(przod) + '</div>' +
-      (F.flip ? '<div class="answer' + (c.dir === 'pl' ? ' la' : '') + '">' + esc(tyl) + '</div>'
+      '<div><div class="side">' + (poj ? (c.dir === 'pl' ? 'pojęcie' : 'wyjaśnienie') : (c.dir === 'pl' ? 'po polsku' : 'po łacinie')) + '</div>' +
+      '<div class="term' + (laP ? ' la' : '') + dl(przod) + '">' + esc(przod) + '</div>' +
+      (F.flip ? '<div class="answer' + (laT ? ' la' : '') + dl(tyl) + '">' + esc(tyl) + '</div>'
         : '<div class="muted small" style="margin-top:18px">kliknij albo naciśnij spację</div>') +
       '</div></div>' +
       (F.flip
@@ -310,8 +344,8 @@
   }
 
   function quizStart() {
-    var pula = NA.pytania.filter(function (p) { return qUst.kat[p.k] && (qUst.w === 'all' || p.w === qUst.w); });
-    if (qUst.kat.naz) pula = pula.concat(pulaNazw(qUst.z));
+    var pula = pyt().filter(function (p) { return qUst.kat[p.k] !== false && (qUst.w === 'all' || p.w === qUst.w); });
+    if (P.struktury && qUst.kat.naz) pula = pula.concat(pulaNazw(qUst.z));
     if (!pula.length) { alert('Brak pytań dla tego wyboru.'); return; }
     pula = shuffle(pula);
     if (qUst.slabe) {
@@ -329,54 +363,61 @@
   }
 
   function egzaminStart() {
-    var wez = function (k, n) { return sample(NA.pytania.filter(function (p) { return p.k === k; }), n); };
+    var E = P.egzamin, all;
+    if (!E.sklad) {
+      all = sample(pyt(), E.liczba);
+      Q = { tryb: 'egzamin', widok: 'egzamin', items: shuffle(all).map(przygotuj), i: 0, pokaz: false, koniec: false };
+      return vQuiz();
+    }
+    var wez = function (k, n) { return sample(pyt().filter(function (p) { return p.k === k; }), n); };
     // w puli "lokalizacja i budowa": nazwy łacińskie oraz ryciny (najpierw skany z ramkami, jeśli są na dysku)
     var skany = NA.ryciny.filter(function (f) { return f.cele.some(function (c) { return c.box; }); });
     var rpula = [];
     (skany.length ? skany : NA.ryciny).forEach(function (f) { if (f.bezEgzaminu) return; f.cele.forEach(function (c, i) { rpula.push(rycPytanie(f, i)); }); });
-    var ryc = sample(rpula, EGZ_RYCINY);
-    var nazwy = sample(pulaNazw('all'), EGZ_NAZWY);
-    var lok = wez('lok', EGZ.lok - nazwy.length - ryc.length).concat(nazwy, ryc);
-    var all = lok.concat(wez('fun', EGZ.fun), wez('zab', EGZ.zab));
+    var ryc = sample(rpula, E.ryciny || 0);
+    var nazwy = sample(pulaNazw('all'), E.nazwy || 0);
+    var lok = wez('lok', E.sklad.lok - nazwy.length - ryc.length).concat(nazwy, ryc);
+    all = lok.concat(wez('fun', E.sklad.fun), wez('zab', E.sklad.zab));
     Q = { tryb: 'egzamin', widok: 'egzamin', items: shuffle(all).map(przygotuj), i: 0, pokaz: false, koniec: false };
     vQuiz();
   }
 
   function vQuizUstawienia() {
     var w = '<option value="all">wszystkie wykłady</option>';
-    Object.keys(NA.wyklady).forEach(function (k) { w += '<option value="' + k + '">' + k + ': ' + esc(NA.wyklady[k]) + '</option>'; });
+    wyklady().forEach(function (k) { w += '<option value="' + k + '">' + k + ': ' + esc(NA.wyklady[k]) + '</option>'; });
     var z = '<option value="all">wszystkie zestawy</option>';
     NA.zestawy.forEach(function (x) { z += '<option value="' + x.nr + '">' + x.nr + '. ' + esc(x.tytul) + '</option>'; });
     var chips = '';
-    Object.keys(KAT).forEach(function (k) {
-      chips += '<label class="chip"><input type="checkbox" data-kat="' + k + '"' + (qUst.kat[k] ? ' checked' : '') + '> ' + KAT[k] + '</label>';
+    Object.keys(P.kat).concat(P.struktury ? ['naz'] : []).forEach(function (k) {
+      chips += '<label class="chip"><input type="checkbox" data-kat="' + k + '"' + ((k === 'naz' ? qUst.kat.naz : qUst.kat[k] !== false) ? ' checked' : '') + '> ' + KAT[k] + '</label>';
     });
-    app.innerHTML = '<h1>Quiz</h1><p class="muted">Odpowiedź sprawdzana od razu, z komentarzem. Punktacja jak na egzaminie, więc możesz też pominąć pytanie.</p>' +
+    app.innerHTML = '<h1>Quiz</h1><p class="muted">Odpowiedź sprawdzana od razu, z komentarzem. Punktacja jak na egzaminie' + (pkt()[2] < 0 ? ', więc możesz też pominąć pytanie.' : '.') + '</p>' +
       '<div class="card"><div class="chips">' + chips + '</div><div class="fields">' +
       '<label class="field">Wykład (pytania pisane)<select id="q-w">' + w + '</select></label>' +
-      '<label class="field">Zestaw (nazwy łacińskie)<select id="q-z">' + z + '</select></label>' +
+      (P.struktury ? '<label class="field">Zestaw (nazwy łacińskie)<select id="q-z">' + z + '</select></label>' : '') +
       '<label class="field">Liczba pytań<select id="q-n"><option value="10">10</option><option value="20">20</option><option value="35">35</option><option value="all">wszystkie</option></select></label>' +
       '</div><div class="chips"><label class="chip"><input type="checkbox" id="q-slabe"' + (qUst.slabe ? ' checked' : '') + '> najpierw to, czego jeszcze nie umiem</label></div>' +
       '<button class="primary" data-act="q-start">Zacznij</button></div>';
     document.getElementById('q-w').value = qUst.w;
-    document.getElementById('q-z').value = qUst.z;
+    if (P.struktury) document.getElementById('q-z').value = qUst.z;
     document.getElementById('q-n').value = qUst.n;
   }
 
   function vEgzaminStart() {
     var hist = '';
-    if (S.exams.length) {
+    var eg = egzaminy();
+    if (eg.length) {
       hist = '<h2>Poprzednie podejścia</h2><div class="card tablewrap"><table><tr><th>Data</th><th>Punkty</th><th>Wynik</th><th>Ocena</th></tr>';
-      S.exams.slice(-8).reverse().forEach(function (e) {
+      eg.slice(-8).reverse().forEach(function (e) {
         hist += '<tr><td>' + esc(e.data) + '</td><td class="n">' + e.pts + ' / ' + e.max + '</td><td class="n">' + e.pct + '%</td><td class="n">' + e.ocena + '</td></tr>';
       });
       hist += '</table></div>';
     }
     app.innerHTML = '<h1>Egzamin próbny</h1>' +
-      '<div class="card"><p>35 pytań ABCD w proporcjach z wykładu: 14 z lokalizacji i budowy (w tym 4 z rycin), 14 z funkcji, 7 z zaburzeń.</p>' +
-      '<p>2 pkt za poprawną odpowiedź, 0 za brak, minus 1 za błędną. Wynik i poprawne odpowiedzi zobaczysz dopiero na końcu.</p>' +
-      '<p class="small muted">Skala: 91-100% to 5, 81-90% to 4,5, 71-80% to 4, 61-70% to 3,5, 50-60% to 3, poniżej 50% to 2. ' +
-      'Pytania pochodzą na razie z wykładów: ' + esc(Object.keys(NA.wyklady).join(', ')) + '.</p>' +
+      '<div class="card"><p>' + esc(P.egzamin.opis) + '</p>' +
+      '<p>Wynik i poprawne odpowiedzi zobaczysz dopiero na końcu.</p>' +
+      '<p class="small muted">Skala: ' + esc(P.egzamin.opisSkali) + ' ' +
+      'Pytania pochodzą na razie z wykładów: ' + esc(wyklady().join(', ')) + '.</p>' +
       '<button class="primary" data-act="e-start">Rozpocznij egzamin</button></div>' + hist;
   }
 
@@ -409,7 +450,7 @@
     if (odsl) {
       var dobrze = it.chosen === it.ci;
       h += '<div class="verdict ' + (dobrze ? 'ok' : 'bad') + '">' +
-        (it.chosen === 'skip' ? 'Pominięte: 0 pkt' : dobrze ? 'Dobrze: +2 pkt' : 'Błąd: -1 pkt') + '</div>';
+        (it.chosen === 'skip' ? 'Pominięte: 0 pkt' : dobrze ? 'Dobrze: +' + pkt()[0] + ' pkt' : 'Błąd: ' + pkt()[2] + ' pkt') + '</div>';
       if (p.e) h += '<div class="expl">' + esc(p.e) + '</div>';
     }
     h += '</div>';
@@ -430,7 +471,7 @@
         '<button class="primary" data-act="q-dalej">' + (Q.i === Q.items.length - 1 ? 'Zobacz wynik' : 'Dalej') + '</button></div>';
     } else {
       h += '<div class="row end"><button class="ghost" data-act="q-przerwij">Zakończ teraz</button>' +
-        '<button data-act="q-skip">Pomijam (0 pkt)</button></div>';
+        (pkt()[2] < 0 ? '<button data-act="q-skip">Pomijam (0 pkt)</button>' : '') + '</div>';
     }
     app.innerHTML = h;
     if (p.fig) dekoruj();
@@ -442,7 +483,7 @@
     zapiszStatystyki(Q.items);
     if (Q.tryb === 'egzamin') {
       var r = policz(Q.items);
-      S.exams.push({ data: new Date().toLocaleDateString('pl-PL'), pts: r.pts, max: r.max, pct: r.pct, ocena: ocena(r.pct) });
+      S.exams.push({ prz: P.id, data: new Date().toLocaleDateString('pl-PL'), pts: r.pts, max: r.max, pct: r.pct, ocena: ocena(r.pct) });
       save();
     }
     vWynik();
@@ -458,11 +499,11 @@
       '<div class="grade">' + r.pts + ' / ' + r.max + ' pkt, ocena wg skali egzaminu: <b>' + ocena(r.pct) + '</b></div>' +
       '<p class="muted" style="margin-top:8px">poprawne ' + r.ok + ', błędne ' + r.bad + ', pominięte ' + r.skip + '</p></div>' +
       '<div class="card tablewrap"><table><tr><th>Zakres</th><th>Dobrze</th><th>Źle</th><th>Brak</th><th>Punkty</th></tr>';
-    ['lok', 'fun', 'zab', 'ryc'].forEach(function (k) {
+    Object.keys(P.kat).concat(['ryc']).forEach(function (k) {
       var c = r.kat[k]; if (!c) return;
       var n = c.ok + c.bad + c.skip;
       h += '<tr><td>' + KAT[k] + '</td><td class="n">' + c.ok + '</td><td class="n">' + c.bad + '</td><td class="n">' + c.skip +
-        '</td><td class="n">' + (2 * c.ok - c.bad) + ' / ' + 2 * n + '</td></tr>';
+        '</td><td class="n">' + (pkt()[0] * c.ok + pkt()[2] * c.bad) + ' / ' + pkt()[0] * n + '</td></tr>';
     });
     h += '</table></div>';
 
@@ -512,8 +553,17 @@
 
   /* ---------- nawigacja ---------- */
   function widok() { return (location.hash || '#start').slice(1); }
+  var sel = document.getElementById('prz');
+  if (sel) {
+    sel.innerHTML = NA.kolejnosc.map(function (id) { return '<option value="' + id + '">' + esc(NA.przedmioty[id].nazwa) + '</option>'; }).join('');
+    sel.addEventListener('change', function () { zmienPrzedmiot(sel.value); });
+  }
   function render() {
     var v = widok();
+    if ((v === 'ryciny' && !P.ryciny) || (v === 'struktury' && !P.struktury)) { location.hash = 'start'; return; }
+    if (sel) sel.value = P.id;
+    var br = document.getElementById('brand'); if (br) br.textContent = P.nazwa;
+    document.querySelectorAll('#nav a[data-need]').forEach(function (a) { a.hidden = !P[a.dataset.need]; });
     if (Q && ['quiz', 'egzamin', 'ryciny'].indexOf(v) >= 0 && Q.widok !== v) Q = null;
     if (v !== 'ryciny') { R.f = null; R.sel = -1; }
     document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.view === v); });
@@ -530,6 +580,7 @@
     if (!el) return;
     var a = el.dataset.act;
     switch (a) {
+      case 'prz': zmienPrzedmiot(el.dataset.p); break;
       case 'fiszki-z': fUst.z = el.dataset.z; fUst.tylko = false; fStart(); idz('fiszki'); break;
       case 'nazwy-z':
         qUst.kat = { lok: false, fun: false, zab: false, naz: true }; qUst.z = el.dataset.z; qUst.n = 'all';
@@ -545,7 +596,8 @@
       case 'q-start':
         if (document.getElementById('q-w')) {
           app.querySelectorAll('[data-kat]').forEach(function (c) { qUst.kat[c.dataset.kat] = c.checked; });
-          qUst.w = document.getElementById('q-w').value; qUst.z = document.getElementById('q-z').value;
+          qUst.w = document.getElementById('q-w').value;
+          if (document.getElementById('q-z')) qUst.z = document.getElementById('q-z').value;
           qUst.n = document.getElementById('q-n').value; qUst.slabe = document.getElementById('q-slabe').checked;
         }
         quizStart(); break;
@@ -574,7 +626,7 @@
         if (confirm(brak ? 'Bez odpowiedzi: ' + brak + ' (po 0 pkt). Zakończyć egzamin?' : 'Zakończyć egzamin?')) zakoncz();
         break;
       case 'wyczysc':
-        if (confirm('Usunąć wszystkie zapisane postępy w tej przeglądarce?')) { S = { box: {}, q: {}, exams: [] }; save(); render(); }
+        if (confirm('Usunąć wszystkie zapisane postępy w tej przeglądarce?')) { S = { box: {}, q: {}, exams: [], prz: P.id }; save(); render(); }
         break;
     }
   });
