@@ -1,0 +1,58 @@
+/* Psychologia starzenia się i starości, wykład 1: wprowadzenie (oprac. S. Steuden).
+   k: pod = starość, demografia, postawy; teo = teorie; zmi = starzenie normatywne i osobowość. */
+
+NA.wyklad('PS1', 'Wprowadzenie w problematykę starzenia się i starości', [
+  { k: 'pod', q: 'Według wykładu najpełniej istotę starości ujawnia stwierdzenie, że rozwój:', ok: 'nie zawsze polega na wzroście, często dotyczy zmian w proporcji', zle: ['kończy się wraz z osiągnięciem dorosłości', 'w starości polega wyłącznie na stratach', 'w starości polega wyłącznie na wzroście mądrości'] },
+  { k: 'pod', q: 'Początek starości utożsamiany z wiekiem emerytalnym w Polsce (wg GUS) to:', ok: '60 lat dla kobiet i 65 lat dla mężczyzn', zle: ['65 lat dla kobiet i 60 lat dla mężczyzn', '60 lat dla obu płci', '67 lat dla obu płci'] },
+  { k: 'pod', q: 'Według WHO starość zaczyna się od:', ok: '60 roku życia', zle: ['55 roku życia', '65 roku życia', '70 roku życia'] },
+  { k: 'pod', q: 'Wiek 70 lat jako granicę starości przyjmują między innymi:', ok: 'Bromley, Susułowska, Wiśniewska-Roszkowska', zle: ['Przetacznik-Gierowska', 'Krzymiński (WHO)', 'Levinson i in.'] },
+  { k: 'pod', q: 'Najniższą granicę starości, 55 lat, podaje:', ok: 'Przetacznik-Gierowska', zle: ['Bromley', 'Bochenek', 'Krzymiński'] },
+  { k: 'pod', q: 'Podział WHO okresu starości to:', ok: 'wczesna starość 60-74, późna starość 75-89, długowieczność od 90 lat', zle: ['60-70, 70-80, 80-90 lat', '60-65, 65-85, powyżej 85 lat', 'młodsi starsi 60-75, starsi starsi powyżej 75'] },
+  { k: 'pod', q: 'Trzy fazy starości 60-70, 70-80 i 80-90 lat wyróżnia:', ok: 'Bochenek', zle: ['WHO', 'Levinson i in.', 'Przetacznik-Gierowska'] },
+  { k: 'pod', q: 'Przedziały 60-65, 65-85 oraz 85 i więcej lat proponują:', ok: 'Levinson i in. oraz Birch i Malim', zle: ['Bochenek', 'WHO', 'Bromley'] },
+  { k: 'pod', q: 'W literaturze psychologicznej „młodsi starsi” to osoby w wieku:', ok: '60-75 lat', zle: ['55-65 lat', '65-80 lat', 'powyżej 75 lat'] },
+  { k: 'pod', q: '„Starsi starsi” to w literaturze psychologicznej osoby:', ok: 'powyżej 75 roku życia', zle: ['powyżej 65 roku życia', 'powyżej 90 roku życia', 'w wieku 60-75 lat'] },
+  { k: 'pod', q: 'Prognozowany udział osób w wieku 60+ w światowej populacji w 2050 roku (WHO) to około:', ok: '21,1%', zle: ['9,2%', '11,7%', '40,4%'] },
+  { k: 'pod', q: 'W Polsce w 2018 roku osoby w wieku 60+ stanowiły (GUS, 2020):', ok: '24,8% ludności', zle: ['11,7% ludności', '40,4% ludności', '58,2% ludności'] },
+  { k: 'pod', q: 'Wśród polskich seniorów w 2018 roku kobiety stanowiły:', ok: '58,2%', zle: ['24,8%', '50,0%', '44,1%'] },
+  { k: 'pod', q: 'Grupa wiekowa, w której do 2050 roku prognozuje się ponad dwukrotny wzrost liczebności, to osoby w wieku:', ok: '80 lat i więcej', zle: ['60-64 lat', '65-69 lat', '70-74 lat'] },
+  { k: 'pod', q: 'Średnia długość życia w Polsce w 2018 roku wynosiła:', ok: 'kobiety 81,7 roku, mężczyźni 73,9 roku', zle: ['kobiety 73,9 roku, mężczyźni 81,7 roku', 'kobiety 78,0 roku, mężczyźni 69,7 roku', 'obie płcie około 80 lat'] },
+  { k: 'pod', q: 'Do przyczyn wzrostu populacji seniorów wykład NIE zalicza:', ok: 'wzrostu dzietności', zle: ['wydłużania średniej długości życia', 'opieki zdrowotnej', 'poprawy czynników społeczno-ekonomicznych'] },
+  { k: 'pod', q: 'Pierwsze Światowe Zgromadzenie na Temat Osób Starszych (ONZ) odbyło się w:', ok: 'Wiedniu w 1982 roku', zle: ['Madrycie w 2002 roku', 'Pradze w 2009 roku', 'na Malcie w 1969 roku'] },
+  { k: 'pod', q: 'Drugie Światowe Zgromadzenie na Temat Starzenia się Społeczeństw odbyło się w:', ok: 'Madrycie w 2002 roku', zle: ['Wiedniu w 1982 roku', 'Argentynie w 1948 roku', 'Pradze w 2009 roku'] },
+  { k: 'pod', q: 'Zasady Działania na Rzecz Osób Starszych przyjęte przez ONZ obejmują pięć obszarów:', ok: 'niezależność, uczestnictwo, opiekę, samorealizację, godność', zle: ['zdrowie, pracę, edukację, rodzinę, religię', 'bezpieczeństwo, mieszkanie, emeryturę, opiekę, kulturę', 'autonomię, aktywność, mądrość, integrację, sens'] },
+  { k: 'pod', q: 'Ile zasad zawierają Zasady Działania ONZ na Rzecz Osób Starszych?', ok: '18', zle: ['5', '10', '25'] },
+  { k: 'pod', q: 'Wymiernym efektem zgromadzenia w Madrycie (2002) było opracowanie:', ok: 'Międzynarodowej Strategii Działania w Kwestii Starzenia Się Społeczeństw', zle: ['Deklaracji Wiedeńskiej', 'ustanowienia Międzynarodowego Dnia Osób Starszych', 'Europejskiej Karty Praw Seniora'] },
+  { k: 'pod', q: 'Międzynarodowy Dzień Osób Starszych (ONZ) przypada:', ok: '1 października', zle: ['1 września', '15 października', '1 grudnia'] },
+  { k: 'pod', q: 'Międzynarodowy Rok Osób Starszych (ONZ) obchodzono w roku:', ok: '1999', zle: ['1982', '1990', '2002'] },
+  { k: 'pod', q: 'Do pozytywnych aspektów starości wykład zalicza:', ok: 'mądrość życiową i większą zdolność wartościowania różnych sytuacji', zle: ['zmianę perspektywy czasowej i świadomość kresu życia', 'narastającą zależność od innych', 'trudność w podtrzymaniu dialogu międzypokoleniowego'] },
+  { k: 'pod', q: 'Mądrość życiowa jest według wykładu atrybutem starości:', ok: 'obiektywnym, choć nie uniwersalnym', zle: ['uniwersalnym, występującym u każdej osoby starszej', 'wyłącznie subiektywnym', 'niezwiązanym z doświadczeniem życiowym'] },
+  { k: 'pod', q: 'Do negatywnych aspektów starości NIE należy:', ok: 'satysfakcja z przejścia na emeryturę', zle: ['świadomość nadchodzącego kresu życia', 'utrata poczucia własnej użyteczności', 'ryzyko utraty zdolności samodzielnego funkcjonowania'] },
+  { k: 'pod', q: 'Bilans życia według wykładu:', ok: 'nie ma wyraźnie zakreślonych granic, jest otwarty i wielowymiarowy', zle: ['dotyczy wyłącznie osobistych sukcesów', 'jest zamknięty i jednowymiarowy', 'obejmuje tylko ostatnie dziesięć lat życia'] },
+  { k: 'pod', q: 'Do cech pozytywnego bilansu życia NIE należy:', ok: 'poczucie zagrożenia starością', zle: ['zaufanie do ludzi', 'akceptacja własnego życia', 'świadomość sensu życia i podejmowanych działań'] },
+  { k: 'pod', q: 'Mądrość według wykładu polega przede wszystkim na:', ok: 'umiejętnym kierowaniu własnym życiem i stosowaniu wiedzy w konkretnym kontekście', zle: ['erudycji i znajomości tego, co niezwykłe', 'ilościowym gromadzeniu informacji', 'wysokiej sprawności intelektualnej'] },
+  { k: 'pod', q: 'Według Ardelt (2005) celem wiedzy teoretycznej jest ilościowe gromadzenie informacji, a celem mądrości:', ok: 'pogłębione rozumienie istoty ludzkiej egzystencji i akceptacja rzeczywistości', zle: ['odkrywanie nowych rzeczy', 'naukowe, bezosobowe podejście do informacji', 'przekonanie o nieograniczonych możliwościach poznania'] },
+  { k: 'pod', q: 'Według Ardelt mądrość w odróżnieniu od wiedzy teoretycznej wiąże się z:', ok: 'świadomością i akceptacją ograniczeń oraz skromnością', zle: ['przekonaniem o nieograniczonych możliwościach poznania', 'wiedzą ograniczoną do jednej dziedziny', 'obniżaniem sprawności poznawczych'] },
+  { k: 'pod', q: 'Do cech mądrości osób starszych wykład NIE zalicza:', ok: 'potrzeby wypowiadania się na każdy temat', zle: ['postawy bardziej akceptującej, mniej oceniającej', 'zdolności do samoograniczenia i wyrzeczeń', 'akceptacji perspektywy śmierci jako części życia'] },
+  { k: 'pod', q: 'Ageizm (Butler, 1969) to:', ok: 'obraz osób starszych jako słabszych i niedołężnych, bez wskazania ich pozytywnej roli', zle: ['dążenie do zatrzymania młodości w wyglądzie', 'nadopiekuńczość wobec osób starszych', 'proces przekształcania społeczeństwa tradycyjnego w nowoczesne'] },
+  { k: 'pod', q: 'Celem kultu młodości jest:', ok: 'zatrzymanie lub przywrócenie młodości w wyglądzie fizycznym, ubiorze, sylwetce', zle: ['przedstawianie osób starszych jako niedołężnych', 'traktowanie seniorów jak dzieci', 'intensyfikowanie powiązań między społecznościami'] },
+  { k: 'pod', q: 'Uprzedzenia łagodne wobec starości wynikają według wykładu z:', ok: 'lęku przed starością, zniedołężnieniem i utratą samodzielności', zle: ['obrazu nieatrakcyjności fizycznej i nieefektywności ekonomicznej', 'globalizacji', 'kultu młodości'] },
+  { k: 'pod', q: 'Stereotyp infantylizacji (Golub, Langer, 2007) polega na:', ok: 'postawach nadopiekuńczych, braku szacunku dla godności i wzmacnianiu poczucia bezradności', zle: ['przedstawianiu seniorów jako mędrców', 'odsuwaniu seniorów z rynku pracy', 'dążeniu do zachowania młodego wyglądu'] },
+  { k: 'pod', q: 'Globalizacja według Sztompki (2005) polega na:', ok: 'intensyfikowaniu powiązań i zależności między społecznościami w skali ponadlokalnej i ponadnarodowej', zle: ['wyznaczaniu standardów przez media', 'przekształcaniu społeczeństwa tradycyjnego w nowoczesne', 'dezaktualizacji wzorców funkcjonowania'] },
+  { k: 'pod', q: 'Pułapka cywilizacyjna, która wyznacza aktualność, atrakcyjność i powszechność standardów także dla osób starszych, to:', ok: 'medializacja', zle: ['globalizacja', 'modernizacja społeczna', 'ageizm'] }
+], 'starosc');
+
+NA.pojecia('starosc', 'PS1', [
+  ['Młodsi starsi', 'Osoby w wieku 60-75 lat (literatura psychologiczna).'],
+  ['Starsi starsi', 'Osoby powyżej 75 roku życia.'],
+  ['Podział starości wg WHO', 'Wczesna starość 60-74, późna starość 75-89, długowieczność od 90 lat.'],
+  ['Zasady Działania ONZ na Rzecz Osób Starszych', '18 zasad w pięciu obszarach: niezależność, uczestnictwo, opieka, samorealizacja, godność.'],
+  ['Wiedeń 1982', 'Pierwsze Światowe Zgromadzenie na Temat Osób Starszych (ONZ); Plan Wiedeński.'],
+  ['Madryt 2002', 'Drugie Światowe Zgromadzenie; Międzynarodowa Strategia Działania w Kwestii Starzenia Się Społeczeństw.'],
+  ['Bilans życia', 'Otwarty, wielowymiarowy; próba zrozumienia i reinterpretacji zdarzeń z odległej perspektywy; pozytywny lub negatywny.'],
+  ['Mądrość', 'Umiejętne kierowanie własnym życiem i stosowanie wiedzy w konkretnym kontekście; nie erudycja.'],
+  ['Ageizm', 'Obraz osób starszych jako słabszych, niedołężnych, bez pozytywnej roli (Butler, 1969).'],
+  ['Kult młodości', 'Dążenie do zatrzymania lub przywrócenia młodości w wyglądzie, ubiorze, sylwetce.'],
+  ['Stereotyp infantylizacji', 'Nadopiekuńczość, brak szacunku dla godności, wzmacnianie bezradności (Golub, Langer, 2007).'],
+  ['Medializacja', 'Wyznacza aktualność, atrakcyjność i powszechność standardów, także dla osób starszych.']
+]);

@@ -34,3 +34,18 @@ NA.przedmiot('neuropsychologia', {
     opisSkali: 'od 95% to 5, od 90% to 4,5, od 80% to 4, od 70% to 3,5, od 60% to 3, poniżej 60% to 2.'
   }
 });
+
+NA.przedmiot('starosc', {
+  nazwa: 'Psychologia starzenia się i starości',
+  prowadzacy: 'prof. Stanisława Steuden (materiały)',
+  kat: { pod: 'Starość, demografia, postawy', teo: 'Teorie starzenia i przystosowania', zmi: 'Starzenie normatywne i osobowość' },
+  struktury: false,
+  ryciny: false,
+  egzamin: {
+    liczba: 30,
+    pkt: [1, 0, 0],
+    skala: [[95, '5'], [90, '4,5'], [80, '4'], [70, '3,5'], [60, '3']],
+    opis: 'Zasady egzaminu nie są jeszcze znane. Tymczasowo: 30 pytań ABCD, 1 pkt za poprawną odpowiedź, bez punktów ujemnych, zaliczenie od 60%.',
+    opisSkali: 'tymczasowa: od 95% to 5, od 90% to 4,5, od 80% to 4, od 70% to 3,5, od 60% to 3.'
+  }
+});
