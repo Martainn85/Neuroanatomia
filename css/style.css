@@ -244,3 +244,6 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .zad.ok .chk > span { text-decoration: line-through; color: var(--muted); }
 .zad button { flex: none; padding: 6px 12px; font-size: .9rem; }
 h3.tydz { margin: 22px 0 8px; font-size: .95rem; color: var(--muted); font-family: system-ui, sans-serif; font-weight: 600; }
+
+.kopia { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.kopia button { padding: 6px 12px; font-size: .85rem; }

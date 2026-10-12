@@ -12,7 +12,7 @@
   var S = { box: {}, q: {}, exams: [], prz: NA.kolejnosc[0], plan: {} };
   try {
     var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; S.prz = raw.prz || S.prz; S.plan = raw.plan || {}; }
+    if (raw) { S.box = raw.box || {}; S.q = raw.q || {}; S.exams = raw.exams || []; S.prz = raw.prz || S.prz; S.plan = raw.plan || {}; S.kopia = raw.kopia || null; }
   } catch (e) { /* brak dostępu do pamięci: działamy bez zapisu */ }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -843,6 +843,48 @@
       else if (Q.tryb === 'egzamin' && k === 'arrowleft' && Q.i > 0) { Q.i--; vQuiz(); }
     }
   });
+
+  /* ---------- kopia postępów w pliku ---------- */
+  function kopiaInfo() {
+    var el = document.getElementById('k-info');
+    if (!el) return;
+    if (!S.kopia) { el.textContent = 'Nie zapisano jeszcze kopii.'; return; }
+    var dni = Math.floor((Date.now() - new Date(S.kopia).getTime()) / 864e5);
+    el.textContent = 'Ostatnia kopia: ' + new Date(S.kopia).toLocaleDateString('pl-PL') + (dni >= 7 ? ' (ponad tydzień temu, warto zapisać nową)' : '');
+  }
+  var kz = document.getElementById('k-zapisz'), kw = document.getElementById('k-wczytaj'), kp = document.getElementById('k-plik');
+  if (kz) kz.addEventListener('click', function () {
+    S.kopia = new Date().toISOString(); save();
+    var dane = JSON.stringify({ format: 'nauka-postepy', wersja: 1, zapisano: S.kopia, dane: S }, null, 1);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([dane], { type: 'application/json' }));
+    a.download = 'nauka-postepy-' + dzis() + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    kopiaInfo();
+  });
+  if (kw) kw.addEventListener('click', function () { kp.value = ''; kp.click(); });
+  if (kp) kp.addEventListener('change', function () {
+    var f = kp.files && kp.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      var j;
+      try { j = JSON.parse(r.result); } catch (e) { alert('To nie jest poprawny plik z postępami.'); return; }
+      if (!j || j.format !== 'nauka-postepy' || !j.dane) { alert('To nie jest plik z postępami tej strony.'); return; }
+      var d = j.dane;
+      if (!confirm('Wczytać postępy zapisane ' + new Date(j.zapisano).toLocaleString('pl-PL') + '? Obecne postępy w tej przeglądarce zostaną zastąpione.')) return;
+      S = { box: d.box || {}, q: d.q || {}, exams: d.exams || [], prz: d.prz || S.prz, plan: d.plan || {}, kopia: d.kopia || j.zapisano };
+      save();
+      P = NA.przedmioty[S.prz] || NA.przedmioty[NA.kolejnosc[0]];
+      Q = null; F = null; RN = null; W = null; R.f = null;
+      render(); kopiaInfo();
+      alert('Postępy wczytane.');
+    };
+    r.readAsText(f);
+  });
+  if (S.kopia === undefined) S.kopia = null;
+  kopiaInfo();
 
   render();
 })();

@@ -25,7 +25,13 @@
   <main id="app" tabindex="-1"></main>
 
   <footer class="foot">
-    Materiał własny do nauki na podstawie wykładów. Postępy zapisują się tylko w tej przeglądarce.
+    <div class="kopia">
+      <button id="k-zapisz" type="button">Zapisz postępy do pliku</button>
+      <button id="k-wczytaj" type="button">Wczytaj postępy z pliku</button>
+      <input id="k-plik" type="file" accept=".json,application/json" hidden>
+      <span id="k-info" class="muted small"></span>
+    </div>
+    Materiał własny do nauki na podstawie wykładów. Postępy zapisują się w tej przeglądarce; kopia w pliku chroni je przed wyczyszczeniem danych i pozwala przenieść naukę na inny komputer.
   </footer>
 
   <script src="js/core.js"></script>
