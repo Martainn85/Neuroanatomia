@@ -133,7 +133,7 @@
       '<a class="btn" href="#fiszki">Fiszki</a></div>' +
       '<p class="small muted">Pytania obejmują wykłady: ' + esc(wyk.map(function (k) { return k + ' (' + NA.wyklady[k] + ')'; }).join(', ')) + '. ' +
       esc(Object.keys(P.kat).map(function (k) { return P.kat[k] + ': ' + licz[k]; }).join(', ')) + '.' +
-      (P.struktury ? ' Nazwy łacińskie są dostępne dla wszystkich zestawów.' : '') + '</p>';
+      (P.struktury ? ' Nazwy łacińskie nie obowiązują na egzaminie; quiz nazw i fiszki łacińskie są dodatkiem.' : '') + '</p>';
     if (!P.struktury) { app.innerHTML = h; return; }
     h += '<h2>Zestawy struktur</h2><div class="sets">';
 

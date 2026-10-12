@@ -11,7 +11,7 @@ NA.przedmiot('neuroanatomia', {
     liczba: 35,
     sklad: { lok: 14, fun: 14, zab: 7 },
     ryciny: 4,
-    nazwy: 2,
+    nazwy: 0,   // nazwy łacińskie nie obowiązują na egzaminie
     pkt: [2, 0, -1],
     skala: [[91, '5'], [81, '4,5'], [71, '4'], [61, '3,5'], [50, '3']],
     opis: '35 pytań ABCD w proporcjach z wykładu: 14 z lokalizacji i budowy (w tym 4 z rycin), 14 z funkcji, 7 z zaburzeń. ' +
